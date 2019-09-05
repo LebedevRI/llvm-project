@@ -28,6 +28,7 @@ set(sources
   X86CallLowering.cpp
   X86CmovConversion.cpp
   X86CondBrFolding.cpp
+  X86CountMIAnalysis.cpp
   X86DomainReassignment.cpp
   X86DiscriminateMemOps.cpp
   X86ExpandPseudo.cpp
