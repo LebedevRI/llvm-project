@@ -113,6 +113,20 @@ reassociateShiftAmtsOfTwoSameDirectionShifts(BinaryOperator *Sh0,
   return Ret;
 }
 
+static Constant *sanitizeUndefsTo(Constant *C, Constant *Replacement) {
+  auto Fix = [&](Constant *V) {
+    return !V || !isa<UndefValue>(V) ? V : Replacement;
+  };
+
+  if (auto *CV = dyn_cast<ConstantVector>(C)) {
+    llvm::SmallVector<Constant *, 32> NewOps(CV->getNumOperands());
+    for (const auto &I : llvm::zip(CV->operands(), NewOps))
+      std::get<1>(I) = Fix(cast_or_null<Constant>(std::get<0>(I).get()));
+    return ConstantVector::get(NewOps);
+  }
+  return C;
+}
+
 // If we have some pattern that leaves only some low bits set, and then performs
 // left-shift of those bits, if none of the bits that are left after the final
 // shift are modified by the mask, we can omit the mask.
@@ -131,13 +145,25 @@ reassociateShiftAmtsOfTwoSameDirectionShifts(BinaryOperator *Sh0,
 //   c,d,e,f) (ShiftShAmt-MaskShAmt) s>= 0 (i.e. ShiftShAmt u>= MaskShAmt)
 static Instruction *
 dropRedundantMaskingOfLeftShiftInput(BinaryOperator *OuterShift,
-                                     const SimplifyQuery &SQ,
+                                     const SimplifyQuery &Q,
                                      InstCombiner::BuilderTy &Builder) {
   assert(OuterShift->getOpcode() == Instruction::BinaryOps::Shl &&
          "The input must be 'shl'!");
 
   Value *Masked = OuterShift->getOperand(0);
   Value *ShiftShAmt = OuterShift->getOperand(1);
+
+  // *If* there is a truncation between an outer shift and a possibly-mask,
+  // then said truncation *must* be one-use, else we can't perform the fold.
+  Value *Trunc;
+  if (match(Masked, m_CombineAnd(m_Trunc(m_Value(Masked)), m_Value(Trunc))) &&
+      !Trunc->hasOneUse())
+    return nullptr;
+  // Do *NOT* look past any `zext`s when matching the `ShiftShAmt` here!
+
+  Type *NarrowestTy = OuterShift->getType();
+  Type *WidestTy = Masked->getType();
+  bool HadTrunc = WidestTy != NarrowestTy;
 
   Value *MaskShAmt;
 
@@ -153,84 +179,106 @@ dropRedundantMaskingOfLeftShiftInput(BinaryOperator *OuterShift,
 
   Value *X;
   Constant *NewMask;
+
   if (match(Masked, m_c_And(m_CombineOr(MaskA, MaskB), m_Value(X)))) {
+    match(ShiftShAmt, m_ZExtOrSelf(m_Value(ShiftShAmt)));
+    match(MaskShAmt, m_ZExtOrSelf(m_Value(MaskShAmt)));
+
+    // We have two shift amounts from two different shifts. The types of those
+    // shift amounts may not match. If that's the case let's bailout now.
+    if (MaskShAmt->getType() != ShiftShAmt->getType())
+      return nullptr;
+
     // Can we simplify (MaskShAmt+ShiftShAmt) ?
-    auto *SumOfShAmts = dyn_cast_or_null<Constant>(
-        SimplifyAddInst(MaskShAmt, ShiftShAmt, /*IsNSW=*/false, /*IsNUW=*/false,
-                        SQ.getWithInstruction(OuterShift)));
+    auto *SumOfShAmts = dyn_cast_or_null<Constant>(SimplifyAddInst(
+        MaskShAmt, ShiftShAmt, /*IsNSW=*/false, /*IsNUW=*/false, Q));
     if (!SumOfShAmts)
       return nullptr; // Did not simplify.
-    Type *Ty = X->getType();
-    unsigned BitWidth = Ty->getScalarSizeInBits();
-    // In this pattern SumOfShAmts correlates with the number of low bits that
-    // shall remain in the root value (OuterShift). If SumOfShAmts is less than
-    // bitwidth, we'll need to also produce a mask to keep SumOfShAmts low bits.
-    // So, does *any* channel need a mask?
-    if (!match(SumOfShAmts, m_SpecificInt_ICMP(ICmpInst::Predicate::ICMP_UGE,
-                                               APInt(BitWidth, BitWidth)))) {
-      // But for a mask we need to get rid of old masking instruction.
-      if (!Masked->hasOneUse())
-        return nullptr; // Else we can't perform the fold.
-      // The mask must be computed in a type twice as wide to ensure
-      // that no bits are lost if the sum-of-shifts is wider than the base type.
-      Type *ExtendedTy = Ty->getExtendedType();
-      auto *ExtendedSumOfShAmts =
-          ConstantExpr::getZExt(SumOfShAmts, ExtendedTy);
-      // And compute the mask as usual: ~(-1 << (SumOfShAmts))
-      auto *ExtendedAllOnes = ConstantExpr::getAllOnesValue(ExtendedTy);
-      auto *ExtendedInvertedMask =
-          ConstantExpr::getShl(ExtendedAllOnes, ExtendedSumOfShAmts);
-      auto *ExtendedMask = ConstantExpr::getNot(ExtendedInvertedMask);
-      NewMask = ConstantExpr::getTrunc(ExtendedMask, Ty);
-    } else
-      NewMask = nullptr; // No mask needed.
-    // All good, we can do this fold.
+    // In this pattern SumOfShAmts correlates with the number of low bits
+    // that shall remain in the root value (OuterShift).
+
+    // The mask must be computed in a type twice as wide to ensure
+    // that no bits are lost if the sum-of-shifts is wider than the base type.
+    Type *ExtendedTy = WidestTy->getExtendedType();
+    // If any of these shift amounts are undef, *ext will turn them into zeros,
+    // let's keep undef's by replacing them with some illegal shift amount.
+    SumOfShAmts = sanitizeUndefsTo(
+        SumOfShAmts,
+        ConstantInt::get(SumOfShAmts->getType()->getScalarType(),
+                         ExtendedTy->getScalarType()->getScalarSizeInBits()));
+    auto *ExtendedSumOfShAmts = ConstantExpr::getZExt(SumOfShAmts, ExtendedTy);
+    // And compute the mask as usual: ~(-1 << (SumOfShAmts))
+    auto *ExtendedAllOnes = ConstantExpr::getAllOnesValue(ExtendedTy);
+    auto *ExtendedInvertedMask =
+        ConstantExpr::getShl(ExtendedAllOnes, ExtendedSumOfShAmts);
+    auto *ExtendedMask = ConstantExpr::getNot(ExtendedInvertedMask);
+    NewMask = ConstantExpr::getTrunc(ExtendedMask, NarrowestTy);
   } else if (match(Masked, m_c_And(m_CombineOr(MaskC, MaskD), m_Value(X))) ||
              match(Masked, m_Shr(m_Shl(m_Value(X), m_Value(MaskShAmt)),
                                  m_Deferred(MaskShAmt)))) {
+    match(ShiftShAmt, m_ZExtOrSelf(m_Value(ShiftShAmt)));
+    match(MaskShAmt, m_ZExtOrSelf(m_Value(MaskShAmt)));
+
+    // We have two shift amounts from two different shifts. The types of those
+    // shift amounts may not match. If that's the case let's bailout now.
+    if (MaskShAmt->getType() != ShiftShAmt->getType())
+      return nullptr;
+
     // Can we simplify (ShiftShAmt-MaskShAmt) ?
-    auto *ShAmtsDiff = dyn_cast_or_null<Constant>(
-        SimplifySubInst(ShiftShAmt, MaskShAmt, /*IsNSW=*/false, /*IsNUW=*/false,
-                        SQ.getWithInstruction(OuterShift)));
+    auto *ShAmtsDiff = dyn_cast_or_null<Constant>(SimplifySubInst(
+        ShiftShAmt, MaskShAmt, /*IsNSW=*/false, /*IsNUW=*/false, Q));
     if (!ShAmtsDiff)
       return nullptr; // Did not simplify.
     // In this pattern ShAmtsDiff correlates with the number of high bits that
-    // shall be unset in the root value (OuterShift). If ShAmtsDiff is negative,
-    // we'll need to also produce a mask to unset ShAmtsDiff high bits.
-    // So, does *any* channel need a mask? (is ShiftShAmt u>= MaskShAmt ?)
-    if (!match(ShAmtsDiff, m_NonNegative())) {
-      // This sub-fold (with mask) is invalid for 'ashr' "masking" instruction.
-      if (match(Masked, m_AShr(m_Value(), m_Value())))
-        return nullptr;
-      // For a mask we need to get rid of old masking instruction.
-      if (!Masked->hasOneUse())
-        return nullptr; // Else we can't perform the fold.
-      Type *Ty = X->getType();
-      unsigned BitWidth = Ty->getScalarSizeInBits();
-      // The mask must be computed in a type twice as wide to ensure
-      // that no bits are lost if the sum-of-shifts is wider than the base type.
-      Type *ExtendedTy = Ty->getExtendedType();
-      auto *ExtendedNumHighBitsToClear = ConstantExpr::getZExt(
-          ConstantExpr::getAdd(
-              ConstantExpr::getNeg(ShAmtsDiff),
-              ConstantInt::get(Ty, BitWidth, /*isSigned=*/false)),
-          ExtendedTy);
-      // And compute the mask as usual: (-1 l>> (ShAmtsDiff))
-      auto *ExtendedAllOnes = ConstantExpr::getAllOnesValue(ExtendedTy);
-      auto *ExtendedMask =
-          ConstantExpr::getLShr(ExtendedAllOnes, ExtendedNumHighBitsToClear);
-      NewMask = ConstantExpr::getTrunc(ExtendedMask, Ty);
-    } else
-      NewMask = nullptr; // No mask needed.
-    // All good, we can do this fold.
+    // shall be unset in the root value (OuterShift).
+
+    // The mask must be computed in a type twice as wide to ensure
+    // that no bits are lost if the sum-of-shifts is wider than the base type.
+    unsigned WidestBitWidth = WidestTy->getScalarSizeInBits();
+    Type *ExtendedTy = WidestTy->getExtendedType();
+    // If any of these shift amounts are undef, *ext will turn them into zeros,
+    // let's keep undef's by replacing them with some illegal shift amount.
+    ShAmtsDiff = sanitizeUndefsTo(
+        ShAmtsDiff, ConstantInt::get(ShAmtsDiff->getType()->getScalarType(),
+                                     -WidestBitWidth));
+    auto *ExtendedNumHighBitsToClear = ConstantExpr::getZExt(
+        ConstantExpr::getSub(ConstantInt::get(ShAmtsDiff->getType(),
+                                              WidestBitWidth,
+                                              /*isSigned=*/false),
+                             ShAmtsDiff),
+        ExtendedTy);
+    // And compute the mask as usual: (-1 l>> (NumHighBitsToClear))
+    auto *ExtendedAllOnes = ConstantExpr::getAllOnesValue(ExtendedTy);
+    auto *ExtendedMask =
+        ConstantExpr::getLShr(ExtendedAllOnes, ExtendedNumHighBitsToClear);
+    NewMask = ConstantExpr::getTrunc(ExtendedMask, NarrowestTy);
   } else
     return nullptr; // Don't know anything about this pattern.
 
-  // No 'NUW'/'NSW'!
-  // We no longer know that we won't shift-out non-0 bits.
+  // Does this mask has any unset bits? If not then we can just not apply it.
+  bool NeedMask = !match(NewMask, m_AllOnes());
+
+  // If we need to apply a mask, there are several more restrictions we have.
+  if (NeedMask) {
+    // The old masking instruction must go away.
+    if (!Masked->hasOneUse())
+      return nullptr;
+    // The original "masking" instruction must not have been`ashr`.
+    if (match(Masked, m_AShr(m_Value(), m_Value())))
+      return nullptr;
+  }
+
+  // If we need to apply truncation, let's do it first, since we can.
+  // We have already ensured that the old truncation will go away.
+  if (HadTrunc)
+    X = Builder.CreateTrunc(X, NarrowestTy);
+
+  // No 'NUW'/'NSW'! We no longer know that we won't shift-out non-0 bits.
+  // We didn't change the Type of this outermost shift, so we can just do it.
   auto *NewShift =
       BinaryOperator::Create(OuterShift->getOpcode(), X, ShiftShAmt);
-  if (!NewMask)
+
+  if (!NeedMask)
     return NewShift;
 
   Builder.Insert(NewShift);
@@ -797,9 +845,10 @@ Instruction *InstCombiner::FoldShiftByConstant(Value *Op0, Constant *Op1,
 }
 
 Instruction *InstCombiner::visitShl(BinaryOperator &I) {
+  const SimplifyQuery Q = SQ.getWithInstruction(&I);
+
   if (Value *V = SimplifyShlInst(I.getOperand(0), I.getOperand(1),
-                                 I.hasNoSignedWrap(), I.hasNoUnsignedWrap(),
-                                 SQ.getWithInstruction(&I)))
+                                 I.hasNoSignedWrap(), I.hasNoUnsignedWrap(), Q))
     return replaceInstUsesWith(I, V);
 
   if (Instruction *X = foldVectorBinop(I))
@@ -808,7 +857,7 @@ Instruction *InstCombiner::visitShl(BinaryOperator &I) {
   if (Instruction *V = commonShiftTransforms(I))
     return V;
 
-  if (Instruction *V = dropRedundantMaskingOfLeftShiftInput(&I, SQ, Builder))
+  if (Instruction *V = dropRedundantMaskingOfLeftShiftInput(&I, Q, Builder))
     return V;
 
   Value *Op0 = I.getOperand(0), *Op1 = I.getOperand(1);
