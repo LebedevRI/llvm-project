@@ -984,6 +984,53 @@ ConstantRange::multiply(const ConstantRange &Other) const {
   return UR.isSizeStrictlySmallerThan(SR) ? UR : SR;
 }
 
+ConstantRange ConstantRange::mulWithNoWrap(const ConstantRange &Other,
+                                           unsigned NoWrapKind,
+                                           PreferredRangeType RangeType) const {
+  // Calculate the range for "X * Y" which is guaranteed not to wrap(overflow).
+  // (X is from this, and Y is from Other)
+  if (isEmptySet() || Other.isEmptySet())
+    return getEmpty();
+  if (isFullSet() && Other.isFullSet())
+    return getFull();
+
+  using OBO = OverflowingBinaryOperator;
+  ConstantRange Result = multiply(Other);
+
+  if (NoWrapKind & OBO::NoSignedWrap) {
+    bool AllOverflow = true;
+    for (const APInt &L : {getUnsignedMin(), getUnsignedMax()}) {
+      for (const APInt &R : {Other.getUnsignedMin(), Other.getUnsignedMax()}) {
+        bool Overflow;
+        (void)L.smul_ov(R, Overflow);
+        AllOverflow &= Overflow;
+      }
+    }
+    if (AllOverflow)
+      return getEmpty(); // Always overflows.
+
+    Result = Result.intersectWith(smul_sat(Other), RangeType);
+  }
+
+  if (NoWrapKind & OBO::NoUnsignedWrap) {
+    bool Overflow;
+
+    (void)getUnsignedMin().umul_ov(Other.getUnsignedMin(), Overflow);
+    if (Overflow)
+      return getEmpty(); // Always overflows.
+
+    if (NoWrapKind & OBO::NoSignedWrap) {
+      (void)getUnsignedMin().smul_ov(Other.getUnsignedMin(), Overflow);
+      if (Overflow)
+        return getEmpty(); // Always overflows.
+    }
+
+    Result = Result.intersectWith(umul_sat(Other), RangeType);
+  }
+
+  return Result;
+}
+
 ConstantRange
 ConstantRange::smax(const ConstantRange &Other) const {
   // X smax Y is: range(smax(X_smin, Y_smin),

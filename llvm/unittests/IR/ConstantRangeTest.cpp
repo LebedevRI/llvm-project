@@ -644,7 +644,8 @@ TEST_F(ConstantRangeTest, Add) {
 }
 
 template <typename Fn1, typename Fn2>
-static void TestAddWithNoSignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
+static void TestAddWithNoSignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn,
+                                              bool CorrectnessOnly = false) {
   unsigned Bits = 4;
   EnumerateTwoConstantRanges(Bits, [&](const ConstantRange &CR1,
                                        const ConstantRange &CR2) {
@@ -669,7 +670,8 @@ static void TestAddWithNoSignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
 
     EXPECT_EQ(CR.isEmptySet(), AllOverflow);
 
-    if (!CR1.isSignWrappedSet() && !CR2.isSignWrappedSet()) {
+    if (!CorrectnessOnly && !CR1.isSignWrappedSet() &&
+        !CR2.isSignWrappedSet()) {
       if (Min.sgt(Max)) {
         EXPECT_TRUE(CR.isEmptySet());
         return;
@@ -682,7 +684,8 @@ static void TestAddWithNoSignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
 }
 
 template <typename Fn1, typename Fn2>
-static void TestAddWithNoUnsignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
+static void TestAddWithNoUnsignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn,
+                                                bool CorrectnessOnly = false) {
   unsigned Bits = 4;
   EnumerateTwoConstantRanges(Bits, [&](const ConstantRange &CR1,
                                        const ConstantRange &CR2) {
@@ -707,7 +710,7 @@ static void TestAddWithNoUnsignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
 
     EXPECT_EQ(CR.isEmptySet(), AllOverflow);
 
-    if (!CR1.isWrappedSet() && !CR2.isWrappedSet()) {
+    if (!CorrectnessOnly && !CR1.isWrappedSet() && !CR2.isWrappedSet()) {
       if (Min.ugt(Max)) {
         EXPECT_TRUE(CR.isEmptySet());
         return;
@@ -720,9 +723,10 @@ static void TestAddWithNoUnsignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFn) {
 }
 
 template <typename Fn1, typename Fn2, typename Fn3>
-static void TestAddWithNoSignedUnsignedWrapExhaustive(Fn1 RangeFn,
-                                                      Fn2 IntFnSigned,
-                                                      Fn3 IntFnUnsigned) {
+static void
+TestAddWithNoSignedUnsignedWrapExhaustive(Fn1 RangeFn, Fn2 IntFnSigned,
+                                          Fn3 IntFnUnsigned,
+                                          bool CorrectnessOnly = false) {
   unsigned Bits = 4;
   EnumerateTwoConstantRanges(
       Bits, [&](const ConstantRange &CR1, const ConstantRange &CR2) {
@@ -754,7 +758,7 @@ static void TestAddWithNoSignedUnsignedWrapExhaustive(Fn1 RangeFn,
 
         EXPECT_EQ(CR.isEmptySet(), AllOverflow);
 
-        if (!CR1.isWrappedSet() && !CR2.isWrappedSet() &&
+        if (!CorrectnessOnly && !CR1.isWrappedSet() && !CR2.isWrappedSet() &&
             !CR1.isSignWrappedSet() && !CR2.isSignWrappedSet()) {
           if (UMin.ugt(UMax) || SMin.sgt(SMax)) {
             EXPECT_TRUE(CR.isEmptySet());
@@ -1005,6 +1009,40 @@ TEST_F(ConstantRangeTest, Multiply) {
   EXPECT_EQ(ConstantRange(APInt(8, -2)).multiply(
               ConstantRange(APInt(8, 0), APInt(8, 2))),
             ConstantRange(APInt(8, -2), APInt(8, 1)));
+}
+
+TEST_F(ConstantRangeTest, MulWithNoWrap) {
+  typedef OverflowingBinaryOperator OBO;
+
+  TestAddWithNoSignedWrapExhaustive(
+      [](const ConstantRange &CR1, const ConstantRange &CR2) {
+        return CR1.mulWithNoWrap(CR2, OBO::NoSignedWrap);
+      },
+      [](bool &IsOverflow, const APInt &N1, const APInt &N2) {
+        return N1.smul_ov(N2, IsOverflow);
+      },
+      /*CorrectnessOnly=*/true);
+
+  TestAddWithNoUnsignedWrapExhaustive(
+      [](const ConstantRange &CR1, const ConstantRange &CR2) {
+        return CR1.mulWithNoWrap(CR2, OBO::NoUnsignedWrap);
+      },
+      [](bool &IsOverflow, const APInt &N1, const APInt &N2) {
+        return N1.umul_ov(N2, IsOverflow);
+      },
+      /*CorrectnessOnly=*/true);
+
+  TestAddWithNoSignedUnsignedWrapExhaustive(
+      [](const ConstantRange &CR1, const ConstantRange &CR2) {
+        return CR1.mulWithNoWrap(CR2, OBO::NoUnsignedWrap | OBO::NoSignedWrap);
+      },
+      [](bool &IsOverflow, const APInt &N1, const APInt &N2) {
+        return N1.smul_ov(N2, IsOverflow);
+      },
+      [](bool &IsOverflow, const APInt &N1, const APInt &N2) {
+        return N1.umul_ov(N2, IsOverflow);
+      },
+      /*CorrectnessOnly=*/true);
 }
 
 TEST_F(ConstantRangeTest, UMax) {

@@ -364,6 +364,14 @@ public:
   ConstantRange multiply(const ConstantRange &Other) const;
 
   /// Return a new range representing the possible values resulting
+  /// from an multiplication with wrap type \p NoWrapKind of a value in this
+  /// range and a value in \p Other.
+  /// If the result range is disjoint, the preferred range is determined by the
+  /// \p PreferredRangeType.
+  ConstantRange mulWithNoWrap(const ConstantRange &Other, unsigned NoWrapKind,
+                              PreferredRangeType RangeType = Smallest) const;
+
+  /// Return a new range representing the possible values resulting
   /// from a signed maximum of a value in this range and a value in \p Other.
   ConstantRange smax(const ConstantRange &Other) const;
 
