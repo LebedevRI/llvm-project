@@ -29,7 +29,7 @@ vpcmpeqw  %xmm3, %xmm3, %xmm5
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      1500
-# CHECK-NEXT: Total Cycles:      1353
+# CHECK-NEXT: Total Cycles:      1354
 # CHECK-NEXT: Total uOps:        1500
 
 # CHECK:      Dispatch Width:    4
@@ -124,24 +124,24 @@ vpcmpeqw  %xmm3, %xmm3, %xmm5
 # CHECK-NEXT:  -      -      -      -      -      -      -      -      -      -     1.00   1.00    -      -     0.50   0.50    -      -      -      -      -      -      -     vpcmpeqw	%xmm3, %xmm3, %xmm5
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     0123456
+# CHECK-NEXT:                     01234567
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeER.    .    ..   pcmpeqb	%mm2, %mm2
-# CHECK-NEXT: [0,1]     DeeER.    .    ..   pcmpeqd	%mm2, %mm2
-# CHECK-NEXT: [0,2]     D=eeER    .    ..   pcmpeqw	%mm2, %mm2
-# CHECK-NEXT: [0,3]     D==eeER   .    ..   pcmpeqb	%xmm2, %xmm2
-# CHECK-NEXT: [0,4]     .DeeE-R   .    ..   pcmpeqd	%xmm2, %xmm2
-# CHECK-NEXT: [0,5]     .D==eeER  .    ..   pcmpeqq	%xmm2, %xmm2
-# CHECK-NEXT: [0,6]     .D===eeER .    ..   pcmpeqw	%xmm2, %xmm2
-# CHECK-NEXT: [0,7]     .D=====eeER    ..   vpcmpeqb	%xmm3, %xmm3, %xmm3
-# CHECK-NEXT: [0,8]     . D===eeE-R    ..   vpcmpeqd	%xmm3, %xmm3, %xmm3
-# CHECK-NEXT: [0,9]     . D======eeER  ..   vpcmpeqq	%xmm3, %xmm3, %xmm3
-# CHECK-NEXT: [0,10]    . D=====eeE-R  ..   vpcmpeqw	%xmm3, %xmm3, %xmm3
-# CHECK-NEXT: [0,11]    . D=======eeER ..   vpcmpeqb	%xmm3, %xmm3, %xmm5
-# CHECK-NEXT: [0,12]    .  D=======eeER..   vpcmpeqd	%xmm3, %xmm3, %xmm5
-# CHECK-NEXT: [0,13]    .  D========eeER.   vpcmpeqq	%xmm3, %xmm3, %xmm5
-# CHECK-NEXT: [0,14]    .  D=========eeER   vpcmpeqw	%xmm3, %xmm3, %xmm5
+# CHECK:      [0,0]     .DeeER    .    . .   pcmpeqb	%mm2, %mm2
+# CHECK-NEXT: [0,1]     .DeeER    .    . .   pcmpeqd	%mm2, %mm2
+# CHECK-NEXT: [0,2]     .D=eeER   .    . .   pcmpeqw	%mm2, %mm2
+# CHECK-NEXT: [0,3]     .D==eeER  .    . .   pcmpeqb	%xmm2, %xmm2
+# CHECK-NEXT: [0,4]     . DeeE-R  .    . .   pcmpeqd	%xmm2, %xmm2
+# CHECK-NEXT: [0,5]     . D==eeER .    . .   pcmpeqq	%xmm2, %xmm2
+# CHECK-NEXT: [0,6]     . D===eeER.    . .   pcmpeqw	%xmm2, %xmm2
+# CHECK-NEXT: [0,7]     . D=====eeER   . .   vpcmpeqb	%xmm3, %xmm3, %xmm3
+# CHECK-NEXT: [0,8]     .  D===eeE-R   . .   vpcmpeqd	%xmm3, %xmm3, %xmm3
+# CHECK-NEXT: [0,9]     .  D======eeER . .   vpcmpeqq	%xmm3, %xmm3, %xmm3
+# CHECK-NEXT: [0,10]    .  D=====eeE-R . .   vpcmpeqw	%xmm3, %xmm3, %xmm3
+# CHECK-NEXT: [0,11]    .  D=======eeER. .   vpcmpeqb	%xmm3, %xmm3, %xmm5
+# CHECK-NEXT: [0,12]    .   D=======eeER .   vpcmpeqd	%xmm3, %xmm3, %xmm5
+# CHECK-NEXT: [0,13]    .   D========eeER.   vpcmpeqq	%xmm3, %xmm3, %xmm5
+# CHECK-NEXT: [0,14]    .   D=========eeER   vpcmpeqw	%xmm3, %xmm3, %xmm5
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

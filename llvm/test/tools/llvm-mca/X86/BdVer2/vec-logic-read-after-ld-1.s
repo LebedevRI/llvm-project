@@ -6,12 +6,12 @@ vandps (%rdi), %xmm1, %xmm2
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      2
-# CHECK-NEXT: Total Cycles:      10
+# CHECK-NEXT: Total Cycles:      11
 # CHECK-NEXT: Total uOps:        2
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.20
-# CHECK-NEXT: IPC:               0.20
+# CHECK-NEXT: uOps Per Cycle:    0.18
+# CHECK-NEXT: IPC:               0.18
 # CHECK-NEXT: Block RThroughput: 1.5
 
 # CHECK:      Instruction Info:
@@ -27,10 +27,11 @@ vandps (%rdi), %xmm1, %xmm2
 # CHECK-NEXT:  1      7     1.50    *                   vandps	(%rdi), %xmm1, %xmm2
 
 # CHECK:      Timeline view:
+# CHECK-NEXT:                     0
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeeeeER .   vaddps	%xmm0, %xmm0, %xmm1
-# CHECK-NEXT: [0,1]     DeeeeeeeER   vandps	(%rdi), %xmm1, %xmm2
+# CHECK:      [0,0]     .DeeeeeER .   vaddps	%xmm0, %xmm0, %xmm1
+# CHECK-NEXT: [0,1]     .DeeeeeeeER   vandps	(%rdi), %xmm1, %xmm2
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

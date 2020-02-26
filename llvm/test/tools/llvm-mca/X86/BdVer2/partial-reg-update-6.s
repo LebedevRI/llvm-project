@@ -13,7 +13,7 @@ lzcnt 2(%rsp), %cx
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      4500
-# CHECK-NEXT: Total Cycles:      12003
+# CHECK-NEXT: Total Cycles:      12004
 # CHECK-NEXT: Total uOps:        7500
 
 # CHECK:      Dispatch Width:    4
@@ -71,17 +71,17 @@ lzcnt 2(%rsp), %cx
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789
-# CHECK-NEXT: Index     0123456789          0123456
+# CHECK-NEXT: Index     0123456789          01234567
 
-# CHECK:      [0,0]     DeeeeER   .    .    .    ..   imull	%edx, %ecx
-# CHECK-NEXT: [0,1]     DeeeeeeER .    .    .    ..   lzcntw	(%rsp), %cx
-# CHECK-NEXT: [0,2]     .D=eeeeeeER    .    .    ..   lzcntw	2(%rsp), %cx
-# CHECK-NEXT: [1,0]     .D=======eeeeER.    .    ..   imull	%edx, %ecx
-# CHECK-NEXT: [1,1]     . D======eeeeeeER   .    ..   lzcntw	(%rsp), %cx
-# CHECK-NEXT: [1,2]     . D========eeeeeeER .    ..   lzcntw	2(%rsp), %cx
-# CHECK-NEXT: [2,0]     .  D=============eeeeER  ..   imull	%edx, %ecx
-# CHECK-NEXT: [2,1]     .  D=============eeeeeeER..   lzcntw	(%rsp), %cx
-# CHECK-NEXT: [2,2]     .   D==============eeeeeeER   lzcntw	2(%rsp), %cx
+# CHECK:      [0,0]     .DeeeeER  .    .    .    . .   imull	%edx, %ecx
+# CHECK-NEXT: [0,1]     .DeeeeeeER.    .    .    . .   lzcntw	(%rsp), %cx
+# CHECK-NEXT: [0,2]     . D=eeeeeeER   .    .    . .   lzcntw	2(%rsp), %cx
+# CHECK-NEXT: [1,0]     . D=======eeeeER    .    . .   imull	%edx, %ecx
+# CHECK-NEXT: [1,1]     .  D======eeeeeeER  .    . .   lzcntw	(%rsp), %cx
+# CHECK-NEXT: [1,2]     .  D========eeeeeeER.    . .   lzcntw	2(%rsp), %cx
+# CHECK-NEXT: [2,0]     .   D=============eeeeER . .   imull	%edx, %ecx
+# CHECK-NEXT: [2,1]     .   D=============eeeeeeER .   lzcntw	(%rsp), %cx
+# CHECK-NEXT: [2,2]     .    D==============eeeeeeER   lzcntw	2(%rsp), %cx
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

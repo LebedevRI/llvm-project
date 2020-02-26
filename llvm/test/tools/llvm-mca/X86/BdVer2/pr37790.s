@@ -6,7 +6,7 @@ stmxcsr (%rsp)
 
 # CHECK:      Iterations:        2
 # CHECK-NEXT: Instructions:      4
-# CHECK-NEXT: Total Cycles:      205
+# CHECK-NEXT: Total Cycles:      206
 # CHECK-NEXT: Total uOps:        6
 
 # CHECK:      Dispatch Width:    4
@@ -30,8 +30,7 @@ stmxcsr (%rsp)
 # CHECK-NEXT:                     0123456789          0123456789          0123456789          0123456789          0123456789
 # CHECK-NEXT: Index     0123456789          0123456789          0123456789          0123456789          0123456789          0123
 
-# CHECK:      [0,0]     DeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeER.   int3
-# CHECK-NEXT: [0,1]     D====================================================================================================eER   stmxcsr	(%rsp)
+# CHECK:      [0,0]     .DeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeER   int3
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

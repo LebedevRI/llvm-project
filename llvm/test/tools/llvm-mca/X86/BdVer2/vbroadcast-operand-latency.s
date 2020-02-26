@@ -6,11 +6,11 @@ vbroadcastss (%rax), %ymm0
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      200
-# CHECK-NEXT: Total Cycles:      206
+# CHECK-NEXT: Total Cycles:      207
 # CHECK-NEXT: Total uOps:        300
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    1.46
+# CHECK-NEXT: uOps Per Cycle:    1.45
 # CHECK-NEXT: IPC:               0.97
 # CHECK-NEXT: Block RThroughput: 2.0
 
@@ -61,15 +61,15 @@ vbroadcastss (%rax), %ymm0
 # CHECK-NEXT: 0.50   0.50    -      -      -      -      -      -     2.00   2.00    -      -      -      -     1.00   1.00    -      -      -     0.50   0.50    -      -     vbroadcastss	(%rax), %ymm0
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     012
+# CHECK-NEXT:                     0123
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeER.    . .   leaq	8(%rsp,%rdi,2), %rax
-# CHECK-NEXT: [0,1]     DeeeeeeER . .   vbroadcastss	(%rax), %ymm0
-# CHECK-NEXT: [1,0]     DeeE----R . .   leaq	8(%rsp,%rdi,2), %rax
-# CHECK-NEXT: [1,1]     .DeeeeeeER. .   vbroadcastss	(%rax), %ymm0
-# CHECK-NEXT: [2,0]     .D=eeE---R. .   leaq	8(%rsp,%rdi,2), %rax
-# CHECK-NEXT: [2,1]     . D==eeeeeeER   vbroadcastss	(%rax), %ymm0
+# CHECK:      [0,0]     .DeeER    .  .   leaq	8(%rsp,%rdi,2), %rax
+# CHECK-NEXT: [0,1]     .DeeeeeeER.  .   vbroadcastss	(%rax), %ymm0
+# CHECK-NEXT: [1,0]     .DeeE----R.  .   leaq	8(%rsp,%rdi,2), %rax
+# CHECK-NEXT: [1,1]     . DeeeeeeER  .   vbroadcastss	(%rax), %ymm0
+# CHECK-NEXT: [2,0]     . D=eeE---R  .   leaq	8(%rsp,%rdi,2), %rax
+# CHECK-NEXT: [2,1]     .  D==eeeeeeER   vbroadcastss	(%rax), %ymm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

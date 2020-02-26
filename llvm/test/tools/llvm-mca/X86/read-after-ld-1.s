@@ -18,7 +18,7 @@ vaddps  (%rax), %xmm1, %xmm1
 # BARCELONA-NEXT: Total Cycles:      20
 # BARCELONA-NEXT: Total uOps:        3
 
-# BDVER2-NEXT:    Total Cycles:      17
+# BDVER2-NEXT:    Total Cycles:      18
 # BDVER2-NEXT:    Total uOps:        2
 
 # BDWELL-NEXT:    Total Cycles:      17
@@ -48,8 +48,8 @@ vaddps  (%rax), %xmm1, %xmm1
 # BARCELONA-NEXT: Block RThroughput: 14.0
 
 # BDVER2:         Dispatch Width:    4
-# BDVER2-NEXT:    uOps Per Cycle:    0.12
-# BDVER2-NEXT:    IPC:               0.12
+# BDVER2-NEXT:    uOps Per Cycle:    0.11
+# BDVER2-NEXT:    IPC:               0.11
 # BDVER2-NEXT:    Block RThroughput: 5.0
 
 # BDWELL:         Dispatch Width:    4
@@ -92,7 +92,7 @@ vaddps  (%rax), %xmm1, %xmm1
 # BARCELONA-NEXT:                     0123456789
 # BARCELONA-NEXT: Index     0123456789
 
-# BDVER2-NEXT:                        0123456
+# BDVER2-NEXT:                        01234567
 # BDVER2-NEXT:    Index     0123456789
 
 # BDWELL-NEXT:                        0123456
@@ -119,8 +119,8 @@ vaddps  (%rax), %xmm1, %xmm1
 # BARCELONA:      [0,0]     DeeeeeeeeeeeeeeER  .   vdivps	%xmm0, %xmm1, %xmm1
 # BARCELONA-NEXT: [0,1]     D========eeeeeeeeeER   vaddps	(%rax), %xmm1, %xmm1
 
-# BDVER2:         [0,0]     DeeeeeeeeeER   ..   vdivps	%xmm0, %xmm1, %xmm1
-# BDVER2-NEXT:    [0,1]     D====eeeeeeeeeeER   vaddps	(%rax), %xmm1, %xmm1
+# BDVER2:         [0,0]     .DeeeeeeeeeER  . .   vdivps	%xmm0, %xmm1, %xmm1
+# BDVER2-NEXT:    [0,1]     .D====eeeeeeeeeeER   vaddps	(%rax), %xmm1, %xmm1
 
 # BDWELL:         [0,0]     DeeeeeeeeeeeER ..   vdivps	%xmm0, %xmm1, %xmm1
 # BDWELL-NEXT:    [0,1]     D======eeeeeeeeER   vaddps	(%rax), %xmm1, %xmm1

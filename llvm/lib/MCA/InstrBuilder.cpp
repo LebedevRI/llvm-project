@@ -15,6 +15,7 @@
 #include "llvm/ADT/APInt.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/MC/MCInst.h"
+#include "llvm/MCA/CodeEmitter.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/WithColor.h"
 #include "llvm/Support/raw_ostream.h"
@@ -498,7 +499,8 @@ Error InstrBuilder::verifyInstrDesc(const InstrDesc &ID,
 }
 
 Expected<const InstrDesc &>
-InstrBuilder::createInstrDescImpl(const MCInst &MCI) {
+InstrBuilder::createInstrDescImpl(CodeEmitter &CE, unsigned MCID,
+                                  const MCInst &MCI) {
   assert(STI.getSchedModel().hasInstrSchedModel() &&
          "Itineraries are not yet supported!");
 
@@ -536,6 +538,9 @@ InstrBuilder::createInstrDescImpl(const MCInst &MCI) {
 
   // Create a new empty descriptor.
   std::unique_ptr<InstrDesc> ID = std::make_unique<InstrDesc>();
+  ID->EncodingByteLength = CE.getEncoding(MCID).size();
+  assert(ID->EncodingByteLength != 0 &&
+         "Instruction with zero-byte-lenght encoding?");
   ID->NumMicroOps = SCDesc.NumMicroOps;
   ID->SchedClassID = SchedClassID;
 
@@ -588,19 +593,21 @@ InstrBuilder::createInstrDescImpl(const MCInst &MCI) {
 }
 
 Expected<const InstrDesc &>
-InstrBuilder::getOrCreateInstrDesc(const MCInst &MCI) {
+InstrBuilder::getOrCreateInstrDesc(CodeEmitter &CE, unsigned MCID,
+                                   const MCInst &MCI) {
   if (Descriptors.find_as(MCI.getOpcode()) != Descriptors.end())
     return *Descriptors[MCI.getOpcode()];
 
   if (VariantDescriptors.find(&MCI) != VariantDescriptors.end())
     return *VariantDescriptors[&MCI];
 
-  return createInstrDescImpl(MCI);
+  return createInstrDescImpl(CE, MCID, MCI);
 }
 
 Expected<std::unique_ptr<Instruction>>
-InstrBuilder::createInstruction(const MCInst &MCI) {
-  Expected<const InstrDesc &> DescOrErr = getOrCreateInstrDesc(MCI);
+InstrBuilder::createInstruction(CodeEmitter &CE, unsigned MCID) {
+  const MCInst &MCI = CE.getInst(MCID);
+  Expected<const InstrDesc &> DescOrErr = getOrCreateInstrDesc(CE, MCID, MCI);
   if (!DescOrErr)
     return DescOrErr.takeError();
   const InstrDesc &D = *DescOrErr;

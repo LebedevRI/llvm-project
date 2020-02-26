@@ -11,12 +11,12 @@ vmovdqu %xmm5, %xmm0
 
 # CHECK:      Iterations:        3
 # CHECK-NEXT: Instructions:      21
-# CHECK-NEXT: Total Cycles:      17
+# CHECK-NEXT: Total Cycles:      18
 # CHECK-NEXT: Total uOps:        21
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    1.24
-# CHECK-NEXT: IPC:               1.24
+# CHECK-NEXT: uOps Per Cycle:    1.17
+# CHECK-NEXT: IPC:               1.17
 # CHECK-NEXT: Block RThroughput: 4.0
 
 # CHECK:      Instruction Info:
@@ -90,30 +90,30 @@ vmovdqu %xmm5, %xmm0
 # CHECK-NEXT:  -      -      -      -      -      -      -      -      -      -     2.00    -      -      -     0.33   0.67    -      -      -      -      -      -      -     vmovdqu	%xmm5, %xmm0
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     0123456
+# CHECK-NEXT:                     01234567
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DR   .    .    ..   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [0,1]     DeER .    .    ..   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [0,2]     D=eER.    .    ..   vmovups	%xmm1, %xmm2
-# CHECK-NEXT: [0,3]     D==eER    .    ..   vmovapd	%xmm2, %xmm3
-# CHECK-NEXT: [0,4]     .D==eER   .    ..   vmovupd	%xmm3, %xmm4
-# CHECK-NEXT: [0,5]     .D===eER  .    ..   vmovdqa	%xmm4, %xmm5
-# CHECK-NEXT: [0,6]     .D====eER .    ..   vmovdqu	%xmm5, %xmm0
-# CHECK-NEXT: [1,0]     .D------R .    ..   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [1,1]     . D==eE-R .    ..   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [1,2]     . D===eER .    ..   vmovups	%xmm1, %xmm2
-# CHECK-NEXT: [1,3]     . D====eER.    ..   vmovapd	%xmm2, %xmm3
-# CHECK-NEXT: [1,4]     . D=====eER    ..   vmovupd	%xmm3, %xmm4
-# CHECK-NEXT: [1,5]     .  D=====eER   ..   vmovdqa	%xmm4, %xmm5
-# CHECK-NEXT: [1,6]     .  D======eER  ..   vmovdqu	%xmm5, %xmm0
-# CHECK-NEXT: [2,0]     .  D--------R  ..   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [2,1]     .  D=====eE-R  ..   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [2,2]     .   D=====eER  ..   vmovups	%xmm1, %xmm2
-# CHECK-NEXT: [2,3]     .   D======eER ..   vmovapd	%xmm2, %xmm3
-# CHECK-NEXT: [2,4]     .   D=======eER..   vmovupd	%xmm3, %xmm4
-# CHECK-NEXT: [2,5]     .   D========eER.   vmovdqa	%xmm4, %xmm5
-# CHECK-NEXT: [2,6]     .    D========eER   vmovdqu	%xmm5, %xmm0
+# CHECK:      [0,0]     .DR  .    .    . .   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [0,1]     .DeER.    .    . .   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [0,2]     .D=eER    .    . .   vmovups	%xmm1, %xmm2
+# CHECK-NEXT: [0,3]     .D==eER   .    . .   vmovapd	%xmm2, %xmm3
+# CHECK-NEXT: [0,4]     . D==eER  .    . .   vmovupd	%xmm3, %xmm4
+# CHECK-NEXT: [0,5]     . D===eER .    . .   vmovdqa	%xmm4, %xmm5
+# CHECK-NEXT: [0,6]     . D====eER.    . .   vmovdqu	%xmm5, %xmm0
+# CHECK-NEXT: [1,0]     . D------R.    . .   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [1,1]     .  D==eE-R.    . .   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [1,2]     .  D===eER.    . .   vmovups	%xmm1, %xmm2
+# CHECK-NEXT: [1,3]     .  D====eER    . .   vmovapd	%xmm2, %xmm3
+# CHECK-NEXT: [1,4]     .  D=====eER   . .   vmovupd	%xmm3, %xmm4
+# CHECK-NEXT: [1,5]     .   D=====eER  . .   vmovdqa	%xmm4, %xmm5
+# CHECK-NEXT: [1,6]     .   D======eER . .   vmovdqu	%xmm5, %xmm0
+# CHECK-NEXT: [2,0]     .   D--------R . .   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [2,1]     .   D=====eE-R . .   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [2,2]     .    D=====eER . .   vmovups	%xmm1, %xmm2
+# CHECK-NEXT: [2,3]     .    D======eER. .   vmovapd	%xmm2, %xmm3
+# CHECK-NEXT: [2,4]     .    D=======eER .   vmovupd	%xmm3, %xmm4
+# CHECK-NEXT: [2,5]     .    D========eER.   vmovdqa	%xmm4, %xmm5
+# CHECK-NEXT: [2,6]     .    .D========eER   vmovdqu	%xmm5, %xmm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

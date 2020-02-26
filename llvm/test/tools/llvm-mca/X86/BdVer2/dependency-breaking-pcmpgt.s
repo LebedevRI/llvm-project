@@ -15,7 +15,7 @@ vpcmpgtq %xmm3, %xmm3, %xmm0
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      6000
-# CHECK-NEXT: Total Cycles:      1504
+# CHECK-NEXT: Total Cycles:      1505
 # CHECK-NEXT: Total uOps:        6000
 
 # CHECK:      Dispatch Width:    4
@@ -74,20 +74,20 @@ vpcmpgtq %xmm3, %xmm3, %xmm0
 # CHECK-NEXT:  -      -      -      -      -      -      -      -      -      -     1.00   1.00    -      -     0.50   0.50    -      -      -      -      -      -      -     vpcmpgtq	%xmm3, %xmm3, %xmm0
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     0123456
+# CHECK-NEXT: Index     01234567
 
-# CHECK:      [0,0]     DR   ..   vpcmpgtb	%xmm0, %xmm0, %xmm1
-# CHECK-NEXT: [0,1]     DR   ..   vpcmpgtw	%xmm1, %xmm1, %xmm2
-# CHECK-NEXT: [0,2]     DR   ..   vpcmpgtd	%xmm2, %xmm2, %xmm3
-# CHECK-NEXT: [0,3]     DeeER..   vpcmpgtq	%xmm3, %xmm3, %xmm0
-# CHECK-NEXT: [1,0]     .D--R..   vpcmpgtb	%xmm0, %xmm0, %xmm1
-# CHECK-NEXT: [1,1]     .D--R..   vpcmpgtw	%xmm1, %xmm1, %xmm2
-# CHECK-NEXT: [1,2]     .D--R..   vpcmpgtd	%xmm2, %xmm2, %xmm3
-# CHECK-NEXT: [1,3]     .DeeER.   vpcmpgtq	%xmm3, %xmm3, %xmm0
-# CHECK-NEXT: [2,0]     . D--R.   vpcmpgtb	%xmm0, %xmm0, %xmm1
-# CHECK-NEXT: [2,1]     . D--R.   vpcmpgtw	%xmm1, %xmm1, %xmm2
-# CHECK-NEXT: [2,2]     . D--R.   vpcmpgtd	%xmm2, %xmm2, %xmm3
-# CHECK-NEXT: [2,3]     . DeeER   vpcmpgtq	%xmm3, %xmm3, %xmm0
+# CHECK:      [0,0]     .DR  . .   vpcmpgtb	%xmm0, %xmm0, %xmm1
+# CHECK-NEXT: [0,1]     .DR  . .   vpcmpgtw	%xmm1, %xmm1, %xmm2
+# CHECK-NEXT: [0,2]     .DR  . .   vpcmpgtd	%xmm2, %xmm2, %xmm3
+# CHECK-NEXT: [0,3]     .DeeER .   vpcmpgtq	%xmm3, %xmm3, %xmm0
+# CHECK-NEXT: [1,0]     . D--R .   vpcmpgtb	%xmm0, %xmm0, %xmm1
+# CHECK-NEXT: [1,1]     . D--R .   vpcmpgtw	%xmm1, %xmm1, %xmm2
+# CHECK-NEXT: [1,2]     . D--R .   vpcmpgtd	%xmm2, %xmm2, %xmm3
+# CHECK-NEXT: [1,3]     . DeeER.   vpcmpgtq	%xmm3, %xmm3, %xmm0
+# CHECK-NEXT: [2,0]     .  D--R.   vpcmpgtb	%xmm0, %xmm0, %xmm1
+# CHECK-NEXT: [2,1]     .  D--R.   vpcmpgtw	%xmm1, %xmm1, %xmm2
+# CHECK-NEXT: [2,2]     .  D--R.   vpcmpgtd	%xmm2, %xmm2, %xmm3
+# CHECK-NEXT: [2,3]     .  DeeER   vpcmpgtq	%xmm3, %xmm3, %xmm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

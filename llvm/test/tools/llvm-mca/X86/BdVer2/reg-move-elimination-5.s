@@ -9,12 +9,12 @@ mov %rdx, %rax
 
 # CHECK:      Iterations:        3
 # CHECK-NEXT: Instructions:      15
-# CHECK-NEXT: Total Cycles:      15
+# CHECK-NEXT: Total Cycles:      16
 # CHECK-NEXT: Total uOps:        15
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    1.00
-# CHECK-NEXT: IPC:               1.00
+# CHECK-NEXT: uOps Per Cycle:    0.94
+# CHECK-NEXT: IPC:               0.94
 # CHECK-NEXT: Block RThroughput: 4.0
 
 # CHECK:      Instruction Info:
@@ -84,24 +84,24 @@ mov %rdx, %rax
 # CHECK-NEXT:  -      -      -      -      -     2.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     movq	%rdx, %rax
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     01234
+# CHECK-NEXT:                     012345
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DR   .    .   .   xorq	%rax, %rax
-# CHECK-NEXT: [0,1]     DeER .    .   .   movq	%rax, %rbx
-# CHECK-NEXT: [0,2]     D=eER.    .   .   movq	%rbx, %rcx
-# CHECK-NEXT: [0,3]     D==eER    .   .   movq	%rcx, %rdx
-# CHECK-NEXT: [0,4]     .D==eER   .   .   movq	%rdx, %rax
-# CHECK-NEXT: [1,0]     .D----R   .   .   xorq	%rax, %rax
-# CHECK-NEXT: [1,1]     .D===eER  .   .   movq	%rax, %rbx
-# CHECK-NEXT: [1,2]     .D====eER .   .   movq	%rbx, %rcx
-# CHECK-NEXT: [1,3]     . D====eER.   .   movq	%rcx, %rdx
-# CHECK-NEXT: [1,4]     . D=====eER   .   movq	%rdx, %rax
-# CHECK-NEXT: [2,0]     . D-------R   .   xorq	%rax, %rax
-# CHECK-NEXT: [2,1]     . D======eER  .   movq	%rax, %rbx
-# CHECK-NEXT: [2,2]     .  D======eER .   movq	%rbx, %rcx
-# CHECK-NEXT: [2,3]     .  D=======eER.   movq	%rcx, %rdx
-# CHECK-NEXT: [2,4]     .  D========eER   movq	%rdx, %rax
+# CHECK:      [0,0]     .DR  .    .    .   xorq	%rax, %rax
+# CHECK-NEXT: [0,1]     .DeER.    .    .   movq	%rax, %rbx
+# CHECK-NEXT: [0,2]     .D=eER    .    .   movq	%rbx, %rcx
+# CHECK-NEXT: [0,3]     .D==eER   .    .   movq	%rcx, %rdx
+# CHECK-NEXT: [0,4]     . D==eER  .    .   movq	%rdx, %rax
+# CHECK-NEXT: [1,0]     . D----R  .    .   xorq	%rax, %rax
+# CHECK-NEXT: [1,1]     . D===eER .    .   movq	%rax, %rbx
+# CHECK-NEXT: [1,2]     . D====eER.    .   movq	%rbx, %rcx
+# CHECK-NEXT: [1,3]     .  D====eER    .   movq	%rcx, %rdx
+# CHECK-NEXT: [1,4]     .  D=====eER   .   movq	%rdx, %rax
+# CHECK-NEXT: [2,0]     .  D-------R   .   xorq	%rax, %rax
+# CHECK-NEXT: [2,1]     .  D======eER  .   movq	%rax, %rbx
+# CHECK-NEXT: [2,2]     .   D======eER .   movq	%rbx, %rcx
+# CHECK-NEXT: [2,3]     .   D=======eER.   movq	%rcx, %rdx
+# CHECK-NEXT: [2,4]     .   D========eER   movq	%rdx, %rax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

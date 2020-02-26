@@ -11,7 +11,7 @@ cmovae %ebx, %eax
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      3000
-# CHECK-NEXT: Total Cycles:      2253
+# CHECK-NEXT: Total Cycles:      2254
 # CHECK-NEXT: Total uOps:        3000
 
 # CHECK:      Dispatch Width:    4
@@ -66,14 +66,14 @@ cmovae %ebx, %eax
 # CHECK-NEXT:  -      -      -      -      -     0.50   0.50    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     cmovael	%ebx, %eax
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     01234567
+# CHECK-NEXT: Index     012345678
 
-# CHECK:      [0,0]     DeER . .   cmpl	%eax, %eax
-# CHECK-NEXT: [0,1]     D==eER .   cmovael	%ebx, %eax
-# CHECK-NEXT: [1,0]     DeE--R .   cmpl	%eax, %eax
-# CHECK-NEXT: [1,1]     D===eER.   cmovael	%ebx, %eax
-# CHECK-NEXT: [2,0]     .D=eE-R.   cmpl	%eax, %eax
-# CHECK-NEXT: [2,1]     .D===eER   cmovael	%ebx, %eax
+# CHECK:      [0,0]     .DeER.  .   cmpl	%eax, %eax
+# CHECK-NEXT: [0,1]     .D==eER .   cmovael	%ebx, %eax
+# CHECK-NEXT: [1,0]     .DeE--R .   cmpl	%eax, %eax
+# CHECK-NEXT: [1,1]     .D===eER.   cmovael	%ebx, %eax
+# CHECK-NEXT: [2,0]     . D=eE-R.   cmpl	%eax, %eax
+# CHECK-NEXT: [2,1]     . D===eER   cmovael	%ebx, %eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

@@ -54,7 +54,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      403
+# CHECK-NEXT: Total Cycles:      404
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -81,19 +81,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          371  (92.1%)
+# CHECK-NEXT: SQ      - Store queue full:                          371  (91.8%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              24  (6.0%)
-# CHECK-NEXT:  1,              372  (92.3%)
+# CHECK-NEXT:  0,              25  (6.2%)
+# CHECK-NEXT:  1,              372  (92.1%)
 # CHECK-NEXT:  4,              7  (1.7%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          3  (0.7%)
-# CHECK-NEXT:  1,          400  (99.3%)
+# CHECK-NEXT:  0,          4  (1.0%)
+# CHECK-NEXT:  1,          400  (99.0%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.
@@ -144,12 +144,12 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     1.00   movb	%dil, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     0123456
+# CHECK-NEXT: Index     01234567
 
-# CHECK:      [0,0]     DeER ..   movb	%spl, (%rax)
-# CHECK-NEXT: [0,1]     D=eER..   movb	%bpl, (%rcx)
-# CHECK-NEXT: [0,2]     D==eER.   movb	%sil, (%rdx)
-# CHECK-NEXT: [0,3]     D===eER   movb	%dil, (%rbx)
+# CHECK:      [0,0]     .DeER. .   movb	%spl, (%rax)
+# CHECK-NEXT: [0,1]     .D=eER .   movb	%bpl, (%rcx)
+# CHECK-NEXT: [0,2]     .D==eER.   movb	%sil, (%rdx)
+# CHECK-NEXT: [0,3]     .D===eER   movb	%dil, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -168,7 +168,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      403
+# CHECK-NEXT: Total Cycles:      404
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -195,19 +195,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          371  (92.1%)
+# CHECK-NEXT: SQ      - Store queue full:                          371  (91.8%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              24  (6.0%)
-# CHECK-NEXT:  1,              372  (92.3%)
+# CHECK-NEXT:  0,              25  (6.2%)
+# CHECK-NEXT:  1,              372  (92.1%)
 # CHECK-NEXT:  4,              7  (1.7%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          3  (0.7%)
-# CHECK-NEXT:  1,          400  (99.3%)
+# CHECK-NEXT:  0,          4  (1.0%)
+# CHECK-NEXT:  1,          400  (99.0%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.
@@ -258,12 +258,12 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     1.00   movw	%di, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     0123456
+# CHECK-NEXT: Index     01234567
 
-# CHECK:      [0,0]     DeER ..   movw	%sp, (%rax)
-# CHECK-NEXT: [0,1]     D=eER..   movw	%bp, (%rcx)
-# CHECK-NEXT: [0,2]     D==eER.   movw	%si, (%rdx)
-# CHECK-NEXT: [0,3]     D===eER   movw	%di, (%rbx)
+# CHECK:      [0,0]     .DeER. .   movw	%sp, (%rax)
+# CHECK-NEXT: [0,1]     .D=eER .   movw	%bp, (%rcx)
+# CHECK-NEXT: [0,2]     .D==eER.   movw	%si, (%rdx)
+# CHECK-NEXT: [0,3]     .D===eER   movw	%di, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -282,7 +282,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      403
+# CHECK-NEXT: Total Cycles:      404
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -309,19 +309,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          371  (92.1%)
+# CHECK-NEXT: SQ      - Store queue full:                          371  (91.8%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              24  (6.0%)
-# CHECK-NEXT:  1,              372  (92.3%)
+# CHECK-NEXT:  0,              25  (6.2%)
+# CHECK-NEXT:  1,              372  (92.1%)
 # CHECK-NEXT:  4,              7  (1.7%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          3  (0.7%)
-# CHECK-NEXT:  1,          400  (99.3%)
+# CHECK-NEXT:  0,          4  (1.0%)
+# CHECK-NEXT:  1,          400  (99.0%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.
@@ -372,12 +372,12 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     1.00   movl	%edi, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     0123456
+# CHECK-NEXT: Index     01234567
 
-# CHECK:      [0,0]     DeER ..   movl	%esp, (%rax)
-# CHECK-NEXT: [0,1]     D=eER..   movl	%ebp, (%rcx)
-# CHECK-NEXT: [0,2]     D==eER.   movl	%esi, (%rdx)
-# CHECK-NEXT: [0,3]     D===eER   movl	%edi, (%rbx)
+# CHECK:      [0,0]     .DeER. .   movl	%esp, (%rax)
+# CHECK-NEXT: [0,1]     .D=eER .   movl	%ebp, (%rcx)
+# CHECK-NEXT: [0,2]     .D==eER.   movl	%esi, (%rdx)
+# CHECK-NEXT: [0,3]     .D===eER   movl	%edi, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -396,7 +396,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      403
+# CHECK-NEXT: Total Cycles:      404
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -423,19 +423,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          371  (92.1%)
+# CHECK-NEXT: SQ      - Store queue full:                          371  (91.8%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              24  (6.0%)
-# CHECK-NEXT:  1,              372  (92.3%)
+# CHECK-NEXT:  0,              25  (6.2%)
+# CHECK-NEXT:  1,              372  (92.1%)
 # CHECK-NEXT:  4,              7  (1.7%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          3  (0.7%)
-# CHECK-NEXT:  1,          400  (99.3%)
+# CHECK-NEXT:  0,          4  (1.0%)
+# CHECK-NEXT:  1,          400  (99.0%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.
@@ -486,12 +486,12 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     1.00   movq	%rdi, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     0123456
+# CHECK-NEXT: Index     01234567
 
-# CHECK:      [0,0]     DeER ..   movq	%rsp, (%rax)
-# CHECK-NEXT: [0,1]     D=eER..   movq	%rbp, (%rcx)
-# CHECK-NEXT: [0,2]     D==eER.   movq	%rsi, (%rdx)
-# CHECK-NEXT: [0,3]     D===eER   movq	%rdi, (%rbx)
+# CHECK:      [0,0]     .DeER. .   movq	%rsp, (%rax)
+# CHECK-NEXT: [0,1]     .D=eER .   movq	%rbp, (%rcx)
+# CHECK-NEXT: [0,2]     .D==eER.   movq	%rsi, (%rdx)
+# CHECK-NEXT: [0,3]     .D===eER   movq	%rdi, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -510,7 +510,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      803
+# CHECK-NEXT: Total Cycles:      804
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -537,19 +537,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          748  (93.2%)
+# CHECK-NEXT: SQ      - Store queue full:                          748  (93.0%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              422  (52.6%)
-# CHECK-NEXT:  1,              374  (46.6%)
+# CHECK-NEXT:  0,              423  (52.6%)
+# CHECK-NEXT:  1,              374  (46.5%)
 # CHECK-NEXT:  2,              1  (0.1%)
 # CHECK-NEXT:  4,              6  (0.7%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          403  (50.2%)
+# CHECK-NEXT:  0,          404  (50.2%)
 # CHECK-NEXT:  1,          400  (49.8%)
 
 # CHECK:      Scheduler's queue usage:
@@ -601,13 +601,13 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -     1.00    -      -     3.00    -      -      -      -      -     1.00   movd	%mm3, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     0
+# CHECK-NEXT:                     01
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeER.    .   movd	%mm0, (%rax)
-# CHECK-NEXT: [0,1]     D==eeER   .   movd	%mm1, (%rcx)
-# CHECK-NEXT: [0,2]     D====eeER .   movd	%mm2, (%rdx)
-# CHECK-NEXT: [0,3]     D======eeER   movd	%mm3, (%rbx)
+# CHECK:      [0,0]     .DeeER    ..   movd	%mm0, (%rax)
+# CHECK-NEXT: [0,1]     .D==eeER  ..   movd	%mm1, (%rcx)
+# CHECK-NEXT: [0,2]     .D====eeER..   movd	%mm2, (%rdx)
+# CHECK-NEXT: [0,3]     .D======eeER   movd	%mm3, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -626,7 +626,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      602
+# CHECK-NEXT: Total Cycles:      603
 # CHECK-NEXT: Total uOps:        400
 
 # CHECK:      Dispatch Width:    4
@@ -653,20 +653,20 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          559  (92.9%)
+# CHECK-NEXT: SQ      - Store queue full:                          559  (92.7%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              222  (36.9%)
-# CHECK-NEXT:  1,              373  (62.0%)
+# CHECK-NEXT:  0,              223  (37.0%)
+# CHECK-NEXT:  1,              373  (61.9%)
 # CHECK-NEXT:  3,              1  (0.2%)
 # CHECK-NEXT:  4,              6  (1.0%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          202  (33.6%)
-# CHECK-NEXT:  1,          400  (66.4%)
+# CHECK-NEXT:  0,          203  (33.7%)
+# CHECK-NEXT:  1,          400  (66.3%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.
@@ -717,12 +717,12 @@ vmovaps %ymm3, (%rbx)
 # CHECK-NEXT: 1.00    -      -      -      -      -      -      -      -      -      -      -      -     1.00    -      -     3.00    -      -      -      -      -     1.00   movaps	%xmm3, (%rbx)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     01234567
+# CHECK-NEXT: Index     012345678
 
-# CHECK:      [0,0]     DeER . .   movaps	%xmm0, (%rax)
-# CHECK-NEXT: [0,1]     D=eER. .   movaps	%xmm1, (%rcx)
-# CHECK-NEXT: [0,2]     D===eER.   movaps	%xmm2, (%rdx)
-# CHECK-NEXT: [0,3]     D====eER   movaps	%xmm3, (%rbx)
+# CHECK:      [0,0]     .DeER.  .   movaps	%xmm0, (%rax)
+# CHECK-NEXT: [0,1]     .D=eER  .   movaps	%xmm1, (%rcx)
+# CHECK-NEXT: [0,2]     .D===eER.   movaps	%xmm2, (%rdx)
+# CHECK-NEXT: [0,3]     .D====eER   movaps	%xmm3, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -741,7 +741,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      7170
+# CHECK-NEXT: Total Cycles:      7172
 # CHECK-NEXT: Total uOps:        1600
 
 # CHECK:      Dispatch Width:    4
@@ -766,19 +766,19 @@ vmovaps %ymm3, (%rbx)
 # CHECK:      Dynamic Dispatch Stall Cycles:
 # CHECK-NEXT: RAT     - Register unavailable:                      0
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
-# CHECK-NEXT: SCHEDQ  - Scheduler full:                            5777  (80.6%)
+# CHECK-NEXT: SCHEDQ  - Scheduler full:                            5568  (77.6%)
 # CHECK-NEXT: LQ      - Load queue full:                           0
-# CHECK-NEXT: SQ      - Store queue full:                          561  (7.8%)
+# CHECK-NEXT: SQ      - Store queue full:                          372  (5.2%)
 # CHECK-NEXT: GROUP   - Static restrictions on the dispatch group: 0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              6770  (94.4%)
+# CHECK-NEXT:  0,              6772  (94.4%)
 # CHECK-NEXT:  4,              400  (5.6%)
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          6770  (94.4%)
+# CHECK-NEXT:  0,          6772  (94.4%)
 # CHECK-NEXT:  4,          400  (5.6%)
 
 # CHECK:      Scheduler's queue usage:
@@ -831,12 +831,12 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789          0123456789
-# CHECK-NEXT: Index     0123456789          0123456789          01
+# CHECK-NEXT: Index     0123456789          0123456789          0123
 
-# CHECK:      [0,0]     DeER .    .    .    .    .    .    .    ..   vmovaps	%ymm0, (%rax)
-# CHECK-NEXT: [0,1]     .D=eER    .    .    .    .    .    .    ..   vmovaps	%ymm1, (%rcx)
-# CHECK-NEXT: [0,2]     . D==================================eER..   vmovaps	%ymm2, (%rdx)
-# CHECK-NEXT: [0,3]     .  D===================================eER   vmovaps	%ymm3, (%rbx)
+# CHECK:      [0,0]     . DeER    .    .    .    .    .    .    .  .   vmovaps	%ymm0, (%rax)
+# CHECK-NEXT: [0,1]     .   DeER  .    .    .    .    .    .    .  .   vmovaps	%ymm1, (%rcx)
+# CHECK-NEXT: [0,2]     .    .D================================eER .   vmovaps	%ymm2, (%rdx)
+# CHECK-NEXT: [0,3]     .    .  D================================eER   vmovaps	%ymm3, (%rbx)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -846,7 +846,7 @@ vmovaps %ymm3, (%rbx)
 
 # CHECK:            [0]    [1]    [2]    [3]
 # CHECK-NEXT: 0.     1     1.0    1.0    0.0       vmovaps	%ymm0, (%rax)
-# CHECK-NEXT: 1.     1     2.0    1.0    0.0       vmovaps	%ymm1, (%rcx)
-# CHECK-NEXT: 2.     1     35.0   33.0   0.0       vmovaps	%ymm2, (%rdx)
-# CHECK-NEXT: 3.     1     36.0   1.0    0.0       vmovaps	%ymm3, (%rbx)
-# CHECK-NEXT:        1     18.5   9.0    0.0       <total>
+# CHECK-NEXT: 1.     1     1.0    1.0    0.0       vmovaps	%ymm1, (%rcx)
+# CHECK-NEXT: 2.     1     33.0   33.0   0.0       vmovaps	%ymm2, (%rdx)
+# CHECK-NEXT: 3.     1     33.0   1.0    0.0       vmovaps	%ymm3, (%rbx)
+# CHECK-NEXT:        1     17.0   9.0    0.0       <total>

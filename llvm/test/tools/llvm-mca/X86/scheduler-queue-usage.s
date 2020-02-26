@@ -17,8 +17,45 @@ xor %eax, %ebx
 
 # ALL:             Schedulers - number of cycles where we saw N micro opcodes issued:
 # ALL-NEXT:        [# issued], [# cycles]
-# ALL-NEXT:         0,          3  (75.0%)
-# ALL-NEXT:         1,          1  (25.0%)
+
+# BARCELONA-NEXT:   0,          3  (75.0%)
+# BARCELONA-NEXT:   1,          1  (25.0%)
+
+# BDVER2-NEXT:      0,          4  (80.0%)
+# BDVER2-NEXT:      1,          1  (20.0%)
+
+# BDW-NEXT:         0,          3  (75.0%)
+# BDW-NEXT:         1,          1  (25.0%)
+
+# BTVER2-NEXT:      0,          3  (75.0%)
+# BTVER2-NEXT:      1,          1  (25.0%)
+
+# HSW-NEXT:         0,          3  (75.0%)
+# HSW-NEXT:         1,          1  (25.0%)
+
+# IVB-NEXT:         0,          3  (75.0%)
+# IVB-NEXT:         1,          1  (25.0%)
+
+# KNL-NEXT:         0,          3  (75.0%)
+# KNL-NEXT:         1,          1  (25.0%)
+
+# SKX-NEXT:         0,          3  (75.0%)
+# SKX-NEXT:         1,          1  (25.0%)
+
+# SKX-AVX512-NEXT:  0,          3  (75.0%)
+# SKX-AVX512-NEXT:  1,          1  (25.0%)
+
+# SLM-NEXT:         0,          3  (75.0%)
+# SLM-NEXT:         1,          1  (25.0%)
+
+# SNB-NEXT:         0,          3  (75.0%)
+# SNB-NEXT:         1,          1  (25.0%)
+
+# ZNVER1-NEXT:      0,          3  (75.0%)
+# ZNVER1-NEXT:      1,          1  (25.0%)
+
+# ZNVER2-NEXT:      0,          3  (75.0%)
+# ZNVER2-NEXT:      1,          1  (25.0%)
 
 # BARCELONA:       Scheduler's queue usage:
 # BARCELONA-NEXT:  [1] Resource name.

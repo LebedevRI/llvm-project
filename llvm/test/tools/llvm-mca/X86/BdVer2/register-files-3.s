@@ -5,11 +5,11 @@ idiv %eax
 
 # CHECK:      Iterations:        2
 # CHECK-NEXT: Instructions:      2
-# CHECK-NEXT: Total Cycles:      42
+# CHECK-NEXT: Total Cycles:      43
 # CHECK-NEXT: Total uOps:        4
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.10
+# CHECK-NEXT: uOps Per Cycle:    0.09
 # CHECK-NEXT: IPC:               0.05
 # CHECK-NEXT: Block RThroughput: 25.0
 
@@ -25,7 +25,7 @@ idiv %eax
 # CHECK-NEXT:  2      14    25.00                 U     idivl	%eax
 
 # CHECK:      Dynamic Dispatch Stall Cycles:
-# CHECK-NEXT: RAT     - Register unavailable:                      16  (38.1%)
+# CHECK-NEXT: RAT     - Register unavailable:                      16  (37.2%)
 # CHECK-NEXT: RCU     - Retire tokens unavailable:                 0
 # CHECK-NEXT: SCHEDQ  - Scheduler full:                            0
 # CHECK-NEXT: LQ      - Load queue full:                           0
@@ -34,8 +34,8 @@ idiv %eax
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              40  (95.2%)
-# CHECK-NEXT:  2,              2  (4.8%)
+# CHECK-NEXT:  0,              41  (95.3%)
+# CHECK-NEXT:  2,              2  (4.7%)
 
 # CHECK:      Register File statistics:
 # CHECK-NEXT: Total number of mappings created:    6
@@ -86,10 +86,10 @@ idiv %eax
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789          0123456789
-# CHECK-NEXT: Index     0123456789          0123456789          01
+# CHECK-NEXT: Index     0123456789          0123456789          012
 
-# CHECK:      [0,0]     DeeeeeeeeeeeeeeER   .    .    .    .    ..   idivl	%eax
-# CHECK-NEXT: [1,0]     .    .    .    .D=========eeeeeeeeeeeeeeER   idivl	%eax
+# CHECK:      [0,0]     .DeeeeeeeeeeeeeeER  .    .    .    .    . .   idivl	%eax
+# CHECK-NEXT: [1,0]     .    .    .    . D=========eeeeeeeeeeeeeeER   idivl	%eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

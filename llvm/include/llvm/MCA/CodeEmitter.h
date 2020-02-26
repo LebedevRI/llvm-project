@@ -60,6 +60,8 @@ public:
       : STI(ST), MAB(AB), MCE(CE), VecOS(Code), Sequence(S),
         Encodings(S.size()) {}
 
+  const MCInst &getInst(unsigned MCID) const { return Sequence[MCID]; }
+
   StringRef getEncoding(unsigned MCID) {
     EncodingInfo EI = getOrCreateEncodingInfo(MCID);
     return StringRef(&Code[EI.first], EI.second);

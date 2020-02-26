@@ -38,9 +38,9 @@ class EntryStage final : public Stage {
 public:
   EntryStage(SourceMgr &SM) : CurrentInstruction(), SM(SM), NumRetired(0) { }
 
-  bool isAvailable(const InstRef &IR) const override;
+  bool isAvailable(const InstRef & /*unused*/) const override;
   bool hasWorkToComplete() const override;
-  Error execute(InstRef &IR) override;
+  Error execute(InstRef & /*unused*/) override;
   Error cycleStart() override;
   Error cycleEnd() override;
 };

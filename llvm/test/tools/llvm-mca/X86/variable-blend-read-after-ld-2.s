@@ -23,7 +23,7 @@ vblendvps %xmm1, (%rdi), %xmm2, %xmm3
 # ALL:          Iterations:        1
 # ALL-NEXT:     Instructions:      2
 
-# BDVER2-NEXT:  Total Cycles:      10
+# BDVER2-NEXT:  Total Cycles:      11
 # BDVER2-NEXT:  Total uOps:        2
 
 # BDWELL-NEXT:  Total Cycles:      10
@@ -51,8 +51,8 @@ vblendvps %xmm1, (%rdi), %xmm2, %xmm3
 # ZNVER2-NEXT:  Total uOps:        2
 
 # BDVER2:       Dispatch Width:    4
-# BDVER2-NEXT:  uOps Per Cycle:    0.20
-# BDVER2-NEXT:  IPC:               0.20
+# BDVER2-NEXT:  uOps Per Cycle:    0.18
+# BDVER2-NEXT:  IPC:               0.18
 # BDVER2-NEXT:  Block RThroughput: 2.0
 
 # BDWELL:       Dispatch Width:    4
@@ -96,6 +96,7 @@ vblendvps %xmm1, (%rdi), %xmm2, %xmm3
 # ZNVER2-NEXT:  Block RThroughput: 1.0
 
 # BDVER2:       Timeline view:
+# BDVER2-NEXT:                      0
 # BDVER2-NEXT:  Index     0123456789
 
 # BDWELL:       Timeline view:
@@ -129,8 +130,8 @@ vblendvps %xmm1, (%rdi), %xmm2, %xmm3
 # ZNVER2-NEXT:                      0
 # ZNVER2-NEXT:  Index     0123456789
 
-# BDVER2:       [0,0]     DeeeeeER .   vaddps	%xmm0, %xmm0, %xmm2
-# BDVER2-NEXT:  [0,1]     DeeeeeeeER   vblendvps	%xmm1, (%rdi), %xmm2, %xmm3
+# BDVER2:       [0,0]     .DeeeeeER .   vaddps	%xmm0, %xmm0, %xmm2
+# BDVER2-NEXT:  [0,1]     .DeeeeeeeER   vblendvps	%xmm1, (%rdi), %xmm2, %xmm3
 
 # BDWELL:       [0,0]     DeeeER   .   vaddps	%xmm0, %xmm0, %xmm2
 # BDWELL-NEXT:  [0,1]     DeeeeeeeER   vblendvps	%xmm1, (%rdi), %xmm2, %xmm3

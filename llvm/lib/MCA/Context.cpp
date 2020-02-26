@@ -15,12 +15,15 @@
 //===----------------------------------------------------------------------===//
 
 #include "llvm/MCA/Context.h"
+#include "llvm/MCA/HardwareUnits/InstructionBuffer.h"
 #include "llvm/MCA/HardwareUnits/RegisterFile.h"
 #include "llvm/MCA/HardwareUnits/RetireControlUnit.h"
 #include "llvm/MCA/HardwareUnits/Scheduler.h"
+#include "llvm/MCA/Stages/DecodeStage.h"
 #include "llvm/MCA/Stages/DispatchStage.h"
 #include "llvm/MCA/Stages/EntryStage.h"
 #include "llvm/MCA/Stages/ExecuteStage.h"
+#include "llvm/MCA/Stages/FetchStage.h"
 #include "llvm/MCA/Stages/MicroOpQueueStage.h"
 #include "llvm/MCA/Stages/RetireStage.h"
 
@@ -32,6 +35,7 @@ Context::createDefaultPipeline(const PipelineOptions &Opts, SourceMgr &SrcMgr) {
   const MCSchedModel &SM = STI.getSchedModel();
 
   // Create the hardware units defining the backend.
+  auto IB = std::make_unique<InstructionBuffer>();
   auto RCU = std::make_unique<RetireControlUnit>(SM);
   auto PRF = std::make_unique<RegisterFile>(SM, MRI, Opts.RegisterFileSize);
   auto LSU = std::make_unique<LSUnit>(SM, Opts.LoadQueueSize,
@@ -39,7 +43,9 @@ Context::createDefaultPipeline(const PipelineOptions &Opts, SourceMgr &SrcMgr) {
   auto HWS = std::make_unique<Scheduler>(SM, *LSU);
 
   // Create the pipeline stages.
-  auto Fetch = std::make_unique<EntryStage>(SrcMgr);
+  auto Fetch = std::make_unique<FetchStage>(*IB);
+  auto Decode = std::make_unique<DecodeStage>(*IB, SrcMgr);
+  auto Entry = std::make_unique<EntryStage>(SrcMgr);
   auto Dispatch = std::make_unique<DispatchStage>(STI, MRI, Opts.DispatchWidth,
                                                    *RCU, *PRF);
   auto Execute =
@@ -47,6 +53,10 @@ Context::createDefaultPipeline(const PipelineOptions &Opts, SourceMgr &SrcMgr) {
   auto Retire = std::make_unique<RetireStage>(*RCU, *PRF, *LSU);
 
   // Pass the ownership of all the hardware units to this Context.
+  // FIXME: parametrize and enable globally.
+  if (STI.getTargetTriple().getArch() == Triple::ArchType::x86_64 &&
+      STI.getCPU() == "bdver2")
+    addHardwareUnit(std::move(IB));
   addHardwareUnit(std::move(RCU));
   addHardwareUnit(std::move(PRF));
   addHardwareUnit(std::move(LSU));
@@ -54,7 +64,13 @@ Context::createDefaultPipeline(const PipelineOptions &Opts, SourceMgr &SrcMgr) {
 
   // Build the pipeline.
   auto StagePipeline = std::make_unique<Pipeline>();
-  StagePipeline->appendStage(std::move(Fetch));
+  // FIXME: parametrize and enable globally.
+  if (STI.getTargetTriple().getArch() == Triple::ArchType::x86_64 &&
+      STI.getCPU() == "bdver2") {
+    StagePipeline->appendStage(std::move(Fetch));
+    StagePipeline->appendStage(std::move(Decode));
+  } else
+    StagePipeline->appendStage(std::move(Entry));
   if (Opts.MicroOpQueueSize)
     StagePipeline->appendStage(std::make_unique<MicroOpQueueStage>(
         Opts.MicroOpQueueSize, Opts.DecodersThroughput));

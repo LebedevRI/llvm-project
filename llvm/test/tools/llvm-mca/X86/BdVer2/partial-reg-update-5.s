@@ -7,7 +7,7 @@ lzcnt %ax, %bx  ## partial register stall.
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      1500
-# CHECK-NEXT: Total Cycles:      3003
+# CHECK-NEXT: Total Cycles:      3004
 # CHECK-NEXT: Total uOps:        3000
 
 # CHECK:      Dispatch Width:    4
@@ -60,11 +60,11 @@ lzcnt %ax, %bx  ## partial register stall.
 # CHECK-NEXT:  -      -      -      -      -     2.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     lzcntw	%ax, %bx
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     012345678
+# CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeER.  .   lzcntw	%ax, %bx
-# CHECK-NEXT: [1,0]     D==eeER .   lzcntw	%ax, %bx
-# CHECK-NEXT: [2,0]     .D===eeER   lzcntw	%ax, %bx
+# CHECK:      [0,0]     .DeeER   .   lzcntw	%ax, %bx
+# CHECK-NEXT: [1,0]     .D==eeER .   lzcntw	%ax, %bx
+# CHECK-NEXT: [2,0]     . D===eeER   lzcntw	%ax, %bx
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

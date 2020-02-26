@@ -5,7 +5,7 @@ idiv %eax
 
 # CHECK:      Iterations:        22
 # CHECK-NEXT: Instructions:      22
-# CHECK-NEXT: Total Cycles:      542
+# CHECK-NEXT: Total Cycles:      543
 # CHECK-NEXT: Total uOps:        44
 
 # CHECK:      Dispatch Width:    4
@@ -34,7 +34,7 @@ idiv %eax
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              531  (98.0%)
+# CHECK-NEXT:  0,              532  (98.0%)
 # CHECK-NEXT:  4,              11  (2.0%)
 
 # CHECK:      Register File statistics:
@@ -53,11 +53,11 @@ idiv %eax
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789          0123456789          0123456789
-# CHECK-NEXT: Index     0123456789          0123456789          0123456789          0123456
+# CHECK-NEXT: Index     0123456789          0123456789          0123456789          01234567
 
-# CHECK:      [0,0]     DeeeeeeeeeeeeeeER   .    .    .    .    .    .    .    .    .    ..   idivl	%eax
-# CHECK-NEXT: [1,0]     D=========================eeeeeeeeeeeeeeER   .    .    .    .    ..   idivl	%eax
-# CHECK-NEXT: [2,0]     .D=================================================eeeeeeeeeeeeeeER   idivl	%eax
+# CHECK:      [0,0]     .DeeeeeeeeeeeeeeER  .    .    .    .    .    .    .    .    .    . .   idivl	%eax
+# CHECK-NEXT: [1,0]     .D=========================eeeeeeeeeeeeeeER  .    .    .    .    . .   idivl	%eax
+# CHECK-NEXT: [2,0]     . D=================================================eeeeeeeeeeeeeeER   idivl	%eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

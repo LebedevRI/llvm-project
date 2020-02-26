@@ -7,7 +7,7 @@ vpinsrb $1, %eax, %xmm0, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      1500
-# CHECK-NEXT: Total Cycles:      2014
+# CHECK-NEXT: Total Cycles:      2015
 # CHECK-NEXT: Total uOps:        2500
 
 # CHECK:      Dispatch Width:    4
@@ -65,17 +65,17 @@ vpinsrb $1, %eax, %xmm0, %xmm0
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789
-# CHECK-NEXT: Index     0123456789          012345
+# CHECK-NEXT: Index     0123456789          0123456
 
-# CHECK:      [0,0]     DeER .    .    .    .    .   addl	%eax, %eax
-# CHECK-NEXT: [0,1]     D===========eeER    .    .   vpinsrb	$0, %eax, %xmm0, %xmm0
-# CHECK-NEXT: [0,2]     .D============eeER  .    .   vpinsrb	$1, %eax, %xmm0, %xmm0
-# CHECK-NEXT: [1,0]     .DeE-------------R  .    .   addl	%eax, %eax
-# CHECK-NEXT: [1,1]     . D=============eeER.    .   vpinsrb	$0, %eax, %xmm0, %xmm0
-# CHECK-NEXT: [1,2]     . D===============eeER   .   vpinsrb	$1, %eax, %xmm0, %xmm0
-# CHECK-NEXT: [2,0]     .  DeE---------------R   .   addl	%eax, %eax
-# CHECK-NEXT: [2,1]     .  D================eeER .   vpinsrb	$0, %eax, %xmm0, %xmm0
-# CHECK-NEXT: [2,2]     .   D=================eeER   vpinsrb	$1, %eax, %xmm0, %xmm0
+# CHECK:      [0,0]     .DeER.    .    .    .    ..   addl	%eax, %eax
+# CHECK-NEXT: [0,1]     .D===========eeER   .    ..   vpinsrb	$0, %eax, %xmm0, %xmm0
+# CHECK-NEXT: [0,2]     . D============eeER .    ..   vpinsrb	$1, %eax, %xmm0, %xmm0
+# CHECK-NEXT: [1,0]     . DeE-------------R .    ..   addl	%eax, %eax
+# CHECK-NEXT: [1,1]     .  D=============eeER    ..   vpinsrb	$0, %eax, %xmm0, %xmm0
+# CHECK-NEXT: [1,2]     .  D===============eeER  ..   vpinsrb	$1, %eax, %xmm0, %xmm0
+# CHECK-NEXT: [2,0]     .   DeE---------------R  ..   addl	%eax, %eax
+# CHECK-NEXT: [2,1]     .   D================eeER..   vpinsrb	$0, %eax, %xmm0, %xmm0
+# CHECK-NEXT: [2,2]     .    D=================eeER   vpinsrb	$1, %eax, %xmm0, %xmm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

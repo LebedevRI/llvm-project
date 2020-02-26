@@ -39,7 +39,7 @@ void EntryStage::getNextInstruction() {
   SM.updateNext();
 }
 
-llvm::Error EntryStage::execute(InstRef & /*unused */) {
+llvm::Error EntryStage::execute(InstRef & /*unused*/) {
   assert(CurrentInstruction && "There is no instruction to process!");
   if (llvm::Error Val = moveToTheNextStage(CurrentInstruction))
     return Val;

@@ -12,7 +12,7 @@ sbb %eax, %eax
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      3000
-# CHECK-NEXT: Total Cycles:      3003
+# CHECK-NEXT: Total Cycles:      3004
 # CHECK-NEXT: Total uOps:        3000
 
 # CHECK:      Dispatch Width:    4
@@ -67,14 +67,14 @@ sbb %eax, %eax
 # CHECK-NEXT:  -      -      -      -      -     2.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     sbbl	%eax, %eax
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     012345678
+# CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeER .  .   sbbl	%edx, %edx
-# CHECK-NEXT: [0,1]     D=eER.  .   sbbl	%eax, %eax
-# CHECK-NEXT: [1,0]     D==eER  .   sbbl	%edx, %edx
-# CHECK-NEXT: [1,1]     D===eER .   sbbl	%eax, %eax
-# CHECK-NEXT: [2,0]     .D===eER.   sbbl	%edx, %edx
-# CHECK-NEXT: [2,1]     .D====eER   sbbl	%eax, %eax
+# CHECK:      [0,0]     .DeER.   .   sbbl	%edx, %edx
+# CHECK-NEXT: [0,1]     .D=eER   .   sbbl	%eax, %eax
+# CHECK-NEXT: [1,0]     .D==eER  .   sbbl	%edx, %edx
+# CHECK-NEXT: [1,1]     .D===eER .   sbbl	%eax, %eax
+# CHECK-NEXT: [2,0]     . D===eER.   sbbl	%edx, %edx
+# CHECK-NEXT: [2,1]     . D====eER   sbbl	%eax, %eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

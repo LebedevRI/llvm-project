@@ -13,7 +13,7 @@ bextrl	%esi, (%rdi), %eax
 # ALL:          Iterations:        1
 # ALL-NEXT:     Instructions:      2
 
-# BDVER2-NEXT:  Total Cycles:      9
+# BDVER2-NEXT:  Total Cycles:      10
 # BDVER2-NEXT:  Total uOps:        3
 
 # BDWELL-NEXT:  Total Cycles:      10
@@ -35,8 +35,8 @@ bextrl	%esi, (%rdi), %eax
 # ZNVER2-NEXT:  Total uOps:        3
 
 # BDVER2:       Dispatch Width:    4
-# BDVER2-NEXT:  uOps Per Cycle:    0.33
-# BDVER2-NEXT:  IPC:               0.22
+# BDVER2-NEXT:  uOps Per Cycle:    0.30
+# BDVER2-NEXT:  IPC:               0.20
 # BDVER2-NEXT:  Block RThroughput: 2.0
 
 # BDWELL:       Dispatch Width:    4
@@ -102,7 +102,7 @@ bextrl	%esi, (%rdi), %eax
 
 # ALL:          Timeline view:
 
-# BDVER2-NEXT:  Index     012345678
+# BDVER2-NEXT:  Index     0123456789
 # BDWELL-NEXT:  Index     0123456789
 # BTVER2-NEXT:  Index     0123456
 # HASWELL-NEXT: Index     0123456789
@@ -110,8 +110,8 @@ bextrl	%esi, (%rdi), %eax
 # ZNVER1-NEXT:  Index     01234567
 # ZNVER2-NEXT:  Index     01234567
 
-# BDVER2:       [0,0]     DeER .  .   addl	%edi, %esi
-# BDVER2-NEXT:  [0,1]     DeeeeeeER   bextrl	%esi, (%rdi), %eax
+# BDVER2:       [0,0]     .DeER.   .   addl	%edi, %esi
+# BDVER2-NEXT:  [0,1]     .DeeeeeeER   bextrl	%esi, (%rdi), %eax
 
 # BDWELL:       [0,0]     DeER .   .   addl	%edi, %esi
 # BDWELL-NEXT:  [0,1]     DeeeeeeeER   bextrl	%esi, (%rdi), %eax

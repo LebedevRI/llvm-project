@@ -10,12 +10,12 @@ vaddps %xmm1, %xmm1, %xmm2
 
 # CHECK:      Iterations:        3
 # CHECK-NEXT: Instructions:      9
-# CHECK-NEXT: Total Cycles:      13
+# CHECK-NEXT: Total Cycles:      14
 # CHECK-NEXT: Total uOps:        9
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.69
-# CHECK-NEXT: IPC:               0.69
+# CHECK-NEXT: uOps Per Cycle:    0.64
+# CHECK-NEXT: IPC:               0.64
 # CHECK-NEXT: Block RThroughput: 1.5
 
 # CHECK:      Instruction Info:
@@ -81,18 +81,18 @@ vaddps %xmm1, %xmm1, %xmm2
 # CHECK-NEXT:  -      -      -      -      -      -      -      -     0.67   0.33    -      -      -      -     1.00    -      -      -      -      -      -      -      -     vaddps	%xmm1, %xmm1, %xmm2
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     012
+# CHECK-NEXT:                     0123
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DR   .    . .   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [0,1]     DeER .    . .   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [0,2]     D=eeeeeER . .   vaddps	%xmm1, %xmm1, %xmm2
-# CHECK-NEXT: [1,0]     D-------R . .   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [1,1]     .D=eE---R . .   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [1,2]     .D===eeeeeER.   vaddps	%xmm1, %xmm1, %xmm2
-# CHECK-NEXT: [2,0]     .D---------R.   vxorps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [2,1]     .D=eE------R.   vmovaps	%xmm0, %xmm1
-# CHECK-NEXT: [2,2]     . D===eeeeeER   vaddps	%xmm1, %xmm1, %xmm2
+# CHECK:      [0,0]     .DR  .    .  .   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [0,1]     .DeER.    .  .   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [0,2]     .D=eeeeeER.  .   vaddps	%xmm1, %xmm1, %xmm2
+# CHECK-NEXT: [1,0]     .D-------R.  .   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [1,1]     . D=eE---R.  .   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [1,2]     . D===eeeeeER.   vaddps	%xmm1, %xmm1, %xmm2
+# CHECK-NEXT: [2,0]     . D---------R.   vxorps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [2,1]     . D=eE------R.   vmovaps	%xmm0, %xmm1
+# CHECK-NEXT: [2,2]     .  D===eeeeeER   vaddps	%xmm1, %xmm1, %xmm2
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

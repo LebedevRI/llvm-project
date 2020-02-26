@@ -12,7 +12,7 @@ add %ebx, %eax
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      800
-# CHECK-NEXT: Total Cycles:      803
+# CHECK-NEXT: Total Cycles:      804
 # CHECK-NEXT: Total uOps:        800
 
 # CHECK:      Dispatch Width:    4
@@ -80,32 +80,32 @@ add %ebx, %eax
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789
-# CHECK-NEXT: Index     0123456789          0123456
+# CHECK-NEXT: Index     0123456789          01234567
 
-# CHECK:      [0,0]     DeER .    .    .    .    ..   addl	%eax, %ecx
-# CHECK-NEXT: [0,1]     DeER .    .    .    .    ..   addl	%eax, %edx
-# CHECK-NEXT: [0,2]     D==eER    .    .    .    ..   addl	%eax, %ebx
-# CHECK-NEXT: [0,3]     D==eER    .    .    .    ..   addl	%edx, %esi
-# CHECK-NEXT: [0,4]     .D===eER  .    .    .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [0,5]     .D===eER  .    .    .    ..   addl	%edx, %esi
-# CHECK-NEXT: [0,6]     .D=====eER.    .    .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [0,7]     .D======eER    .    .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [1,0]     . D========eER .    .    ..   addl	%eax, %ecx
-# CHECK-NEXT: [1,1]     . D======eE--R .    .    ..   addl	%eax, %edx
-# CHECK-NEXT: [1,2]     . D=======eE-R .    .    ..   addl	%eax, %ebx
-# CHECK-NEXT: [1,3]     . D=========eER.    .    ..   addl	%edx, %esi
-# CHECK-NEXT: [1,4]     .  D=========eER    .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [1,5]     .  D==========eER   .    ..   addl	%edx, %esi
-# CHECK-NEXT: [1,6]     .  D===========eER  .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [1,7]     .  D============eER .    ..   addl	%ebx, %eax
-# CHECK-NEXT: [2,0]     .   D==============eER   ..   addl	%eax, %ecx
-# CHECK-NEXT: [2,1]     .   D============eE--R   ..   addl	%eax, %edx
-# CHECK-NEXT: [2,2]     .   D=============eE-R   ..   addl	%eax, %ebx
-# CHECK-NEXT: [2,3]     .   D===============eER  ..   addl	%edx, %esi
-# CHECK-NEXT: [2,4]     .    D===============eER ..   addl	%ebx, %eax
-# CHECK-NEXT: [2,5]     .    D================eER..   addl	%edx, %esi
-# CHECK-NEXT: [2,6]     .    D=================eER.   addl	%ebx, %eax
-# CHECK-NEXT: [2,7]     .    D==================eER   addl	%ebx, %eax
+# CHECK:      [0,0]     .DeER.    .    .    .    . .   addl	%eax, %ecx
+# CHECK-NEXT: [0,1]     .DeER.    .    .    .    . .   addl	%eax, %edx
+# CHECK-NEXT: [0,2]     .D==eER   .    .    .    . .   addl	%eax, %ebx
+# CHECK-NEXT: [0,3]     .D==eER   .    .    .    . .   addl	%edx, %esi
+# CHECK-NEXT: [0,4]     . D===eER .    .    .    . .   addl	%ebx, %eax
+# CHECK-NEXT: [0,5]     . D===eER .    .    .    . .   addl	%edx, %esi
+# CHECK-NEXT: [0,6]     . D=====eER    .    .    . .   addl	%ebx, %eax
+# CHECK-NEXT: [0,7]     . D======eER   .    .    . .   addl	%ebx, %eax
+# CHECK-NEXT: [1,0]     .  D========eER.    .    . .   addl	%eax, %ecx
+# CHECK-NEXT: [1,1]     .  D======eE--R.    .    . .   addl	%eax, %edx
+# CHECK-NEXT: [1,2]     .  D=======eE-R.    .    . .   addl	%eax, %ebx
+# CHECK-NEXT: [1,3]     .  D=========eER    .    . .   addl	%edx, %esi
+# CHECK-NEXT: [1,4]     .   D=========eER   .    . .   addl	%ebx, %eax
+# CHECK-NEXT: [1,5]     .   D==========eER  .    . .   addl	%edx, %esi
+# CHECK-NEXT: [1,6]     .   D===========eER .    . .   addl	%ebx, %eax
+# CHECK-NEXT: [1,7]     .   D============eER.    . .   addl	%ebx, %eax
+# CHECK-NEXT: [2,0]     .    D==============eER  . .   addl	%eax, %ecx
+# CHECK-NEXT: [2,1]     .    D============eE--R  . .   addl	%eax, %edx
+# CHECK-NEXT: [2,2]     .    D=============eE-R  . .   addl	%eax, %ebx
+# CHECK-NEXT: [2,3]     .    D===============eER . .   addl	%edx, %esi
+# CHECK-NEXT: [2,4]     .    .D===============eER. .   addl	%ebx, %eax
+# CHECK-NEXT: [2,5]     .    .D================eER .   addl	%edx, %esi
+# CHECK-NEXT: [2,6]     .    .D=================eER.   addl	%ebx, %eax
+# CHECK-NEXT: [2,7]     .    .D==================eER   addl	%ebx, %eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

@@ -6,12 +6,12 @@ vhaddps (%rdi), %xmm1, %xmm2
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      2
-# CHECK-NEXT: Total Cycles:      20
+# CHECK-NEXT: Total Cycles:      22
 # CHECK-NEXT: Total uOps:        5
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.25
-# CHECK-NEXT: IPC:               0.10
+# CHECK-NEXT: uOps Per Cycle:    0.23
+# CHECK-NEXT: IPC:               0.09
 # CHECK-NEXT: Block RThroughput: 3.5
 
 # CHECK:      Instruction Info:
@@ -28,10 +28,10 @@ vhaddps (%rdi), %xmm1, %xmm2
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789
-# CHECK-NEXT: Index     0123456789
+# CHECK-NEXT: Index     0123456789          01
 
-# CHECK:      [0,0]     DeeER.    .    .   .   vshufps	$0, %xmm0, %xmm1, %xmm1
-# CHECK-NEXT: [0,1]     .DeeeeeeeeeeeeeeeeER   vhaddps	(%rdi), %xmm1, %xmm2
+# CHECK:      [0,0]     .DeeER    .    .    ..   vshufps	$0, %xmm0, %xmm1, %xmm1
+# CHECK-NEXT: [0,1]     .  DeeeeeeeeeeeeeeeeER   vhaddps	(%rdi), %xmm1, %xmm2
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

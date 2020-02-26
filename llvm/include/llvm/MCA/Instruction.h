@@ -362,6 +362,9 @@ struct InstrDesc {
   // A bitmask of used processor resource groups.
   uint64_t UsedProcResGroups;
 
+  // How many bytes does the endcoding of this instruction occupy.
+  unsigned EncodingByteLength;
+  // What latency does this instruction incur.
   unsigned MaxLatency;
   // Number of MicroOps for this instruction.
   unsigned NumMicroOps;
@@ -417,6 +420,7 @@ public:
   const ArrayRef<ReadState> getUses() const { return Uses; }
   const InstrDesc &getDesc() const { return Desc; }
 
+  unsigned getEncodingByteLength() const { return Desc.EncodingByteLength; }
   unsigned getLatency() const { return Desc.MaxLatency; }
   unsigned getNumMicroOps() const { return Desc.NumMicroOps; }
 

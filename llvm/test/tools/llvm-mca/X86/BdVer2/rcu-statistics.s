@@ -20,12 +20,12 @@
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      16
-# CHECK-NEXT: Total Cycles:      22
+# CHECK-NEXT: Total Cycles:      23
 # CHECK-NEXT: Total uOps:        16
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.73
-# CHECK-NEXT: IPC:               0.73
+# CHECK-NEXT: uOps Per Cycle:    0.70
+# CHECK-NEXT: IPC:               0.70
 # CHECK-NEXT: Block RThroughput: 15.0
 
 # CHECK:      Instruction Info:
@@ -56,10 +56,10 @@
 
 # CHECK:      Retire Control Unit - number of cycles where we saw N instructions retired:
 # CHECK-NEXT: [# retired], [# cycles]
-# CHECK-NEXT:  0,           11  (50.0%)
-# CHECK-NEXT:  1,           9  (40.9%)
-# CHECK-NEXT:  3,           1  (4.5%)
-# CHECK-NEXT:  4,           1  (4.5%)
+# CHECK-NEXT:  0,           12  (52.2%)
+# CHECK-NEXT:  1,           9  (39.1%)
+# CHECK-NEXT:  3,           1  (4.3%)
+# CHECK-NEXT:  4,           1  (4.3%)
 
 # CHECK:      Total ROB Entries:                128
 # CHECK-NEXT: Max Used ROB Entries:             16  ( 12.5% )

@@ -9,12 +9,12 @@ mov %edx, %eax
 
 # CHECK:      Iterations:        3
 # CHECK-NEXT: Instructions:      15
-# CHECK-NEXT: Total Cycles:      15
+# CHECK-NEXT: Total Cycles:      16
 # CHECK-NEXT: Total uOps:        15
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    1.00
-# CHECK-NEXT: IPC:               1.00
+# CHECK-NEXT: uOps Per Cycle:    0.94
+# CHECK-NEXT: IPC:               0.94
 # CHECK-NEXT: Block RThroughput: 4.0
 
 # CHECK:      Instruction Info:
@@ -84,24 +84,24 @@ mov %edx, %eax
 # CHECK-NEXT:  -      -      -      -      -     2.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     movl	%edx, %eax
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     01234
+# CHECK-NEXT:                     012345
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DR   .    .   .   xorl	%eax, %eax
-# CHECK-NEXT: [0,1]     DeER .    .   .   movl	%eax, %ebx
-# CHECK-NEXT: [0,2]     D=eER.    .   .   movl	%ebx, %ecx
-# CHECK-NEXT: [0,3]     D==eER    .   .   movl	%ecx, %edx
-# CHECK-NEXT: [0,4]     .D==eER   .   .   movl	%edx, %eax
-# CHECK-NEXT: [1,0]     .D----R   .   .   xorl	%eax, %eax
-# CHECK-NEXT: [1,1]     .D===eER  .   .   movl	%eax, %ebx
-# CHECK-NEXT: [1,2]     .D====eER .   .   movl	%ebx, %ecx
-# CHECK-NEXT: [1,3]     . D====eER.   .   movl	%ecx, %edx
-# CHECK-NEXT: [1,4]     . D=====eER   .   movl	%edx, %eax
-# CHECK-NEXT: [2,0]     . D-------R   .   xorl	%eax, %eax
-# CHECK-NEXT: [2,1]     . D======eER  .   movl	%eax, %ebx
-# CHECK-NEXT: [2,2]     .  D======eER .   movl	%ebx, %ecx
-# CHECK-NEXT: [2,3]     .  D=======eER.   movl	%ecx, %edx
-# CHECK-NEXT: [2,4]     .  D========eER   movl	%edx, %eax
+# CHECK:      [0,0]     .DR  .    .    .   xorl	%eax, %eax
+# CHECK-NEXT: [0,1]     .DeER.    .    .   movl	%eax, %ebx
+# CHECK-NEXT: [0,2]     .D=eER    .    .   movl	%ebx, %ecx
+# CHECK-NEXT: [0,3]     .D==eER   .    .   movl	%ecx, %edx
+# CHECK-NEXT: [0,4]     . D==eER  .    .   movl	%edx, %eax
+# CHECK-NEXT: [1,0]     . D----R  .    .   xorl	%eax, %eax
+# CHECK-NEXT: [1,1]     . D===eER .    .   movl	%eax, %ebx
+# CHECK-NEXT: [1,2]     . D====eER.    .   movl	%ebx, %ecx
+# CHECK-NEXT: [1,3]     .  D====eER    .   movl	%ecx, %edx
+# CHECK-NEXT: [1,4]     .  D=====eER   .   movl	%edx, %eax
+# CHECK-NEXT: [2,0]     .  D-------R   .   xorl	%eax, %eax
+# CHECK-NEXT: [2,1]     .  D======eER  .   movl	%eax, %ebx
+# CHECK-NEXT: [2,2]     .   D======eER .   movl	%ebx, %ecx
+# CHECK-NEXT: [2,3]     .   D=======eER.   movl	%ecx, %edx
+# CHECK-NEXT: [2,4]     .   D========eER   movl	%edx, %eax
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

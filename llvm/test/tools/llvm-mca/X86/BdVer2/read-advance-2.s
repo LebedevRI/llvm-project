@@ -9,7 +9,7 @@
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      2
-# CHECK-NEXT: Total Cycles:      15
+# CHECK-NEXT: Total Cycles:      16
 # CHECK-NEXT: Total uOps:        2
 
 # CHECK:      Dispatch Width:    4
@@ -30,11 +30,11 @@
 # CHECK-NEXT:  1      8     4.00    *                   imull	(%rdi)
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     01234
+# CHECK-NEXT:                     012345
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeeeER   .   .   imull	%esi
-# CHECK-NEXT: [0,1]     D====eeeeeeeeER   imull	(%rdi)
+# CHECK:      [0,0]     .DeeeeER  .    .   imull	%esi
+# CHECK-NEXT: [0,1]     .D====eeeeeeeeER   imull	(%rdi)
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

@@ -18,6 +18,7 @@
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
 #include "llvm/MC/MCSubtargetInfo.h"
+#include "llvm/MCA/CodeEmitter.h"
 #include "llvm/MCA/Instruction.h"
 #include "llvm/MCA/Support.h"
 #include "llvm/Support/Error.h"
@@ -48,8 +49,10 @@ class InstrBuilder {
   bool FirstCallInst;
   bool FirstReturnInst;
 
-  Expected<const InstrDesc &> createInstrDescImpl(const MCInst &MCI);
-  Expected<const InstrDesc &> getOrCreateInstrDesc(const MCInst &MCI);
+  Expected<const InstrDesc &>
+  createInstrDescImpl(CodeEmitter &CE, unsigned MCID, const MCInst &MCI);
+  Expected<const InstrDesc &>
+  getOrCreateInstrDesc(CodeEmitter &CE, unsigned MCID, const MCInst &MCI);
 
   InstrBuilder(const InstrBuilder &) = delete;
   InstrBuilder &operator=(const InstrBuilder &) = delete;
@@ -68,7 +71,8 @@ public:
     FirstReturnInst = true;
   }
 
-  Expected<std::unique_ptr<Instruction>> createInstruction(const MCInst &MCI);
+  Expected<std::unique_ptr<Instruction>> createInstruction(CodeEmitter &CE,
+                                                           unsigned MCID);
 };
 } // namespace mca
 } // namespace llvm

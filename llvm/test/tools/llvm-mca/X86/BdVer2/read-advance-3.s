@@ -7,12 +7,12 @@
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      3
-# CHECK-NEXT: Total Cycles:      8
+# CHECK-NEXT: Total Cycles:      9
 # CHECK-NEXT: Total uOps:        3
 
 # CHECK:      Dispatch Width:    3
-# CHECK-NEXT: uOps Per Cycle:    0.38
-# CHECK-NEXT: IPC:               0.38
+# CHECK-NEXT: uOps Per Cycle:    0.33
+# CHECK-NEXT: IPC:               0.33
 # CHECK-NEXT: Block RThroughput: 3.0
 
 # CHECK:      Instruction Info:
@@ -29,11 +29,11 @@
 # CHECK-NEXT:  1      1     1.00                        addq	%rdx, %r8
 
 # CHECK:      Timeline view:
-# CHECK-NEXT: Index     01234567
+# CHECK-NEXT: Index     012345678
 
-# CHECK:      [0,0]     DeER . .   addq	%rdi, %rsi
-# CHECK-NEXT: [0,1]     DeeeeeER   addq	(%rsp), %rsi
-# CHECK-NEXT: [0,2]     D==eE--R   addq	%rdx, %r8
+# CHECK:      [0,0]     .DeER.  .   addq	%rdi, %rsi
+# CHECK-NEXT: [0,1]     .DeeeeeER   addq	(%rsp), %rsi
+# CHECK-NEXT: [0,2]     .D==eE--R   addq	%rdx, %r8
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

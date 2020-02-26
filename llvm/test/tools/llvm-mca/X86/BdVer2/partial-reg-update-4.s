@@ -12,7 +12,7 @@ add %cx, %bx
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      4500
-# CHECK-NEXT: Total Cycles:      9753
+# CHECK-NEXT: Total Cycles:      9754
 # CHECK-NEXT: Total uOps:        6000
 
 # CHECK:      Dispatch Width:    4
@@ -70,17 +70,17 @@ add %cx, %bx
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789
-# CHECK-NEXT: Index     0123456789          01
+# CHECK-NEXT: Index     0123456789          012
 
-# CHECK:      [0,0]     DeeeeER   .    .    ..   imulw	%ax, %bx
-# CHECK-NEXT: [0,1]     D===eeER  .    .    ..   lzcntw	%ax, %bx
-# CHECK-NEXT: [0,2]     D=====eER .    .    ..   addw	%cx, %bx
-# CHECK-NEXT: [1,0]     .D======eeeeER .    ..   imulw	%ax, %bx
-# CHECK-NEXT: [1,1]     .D=========eeER.    ..   lzcntw	%ax, %bx
-# CHECK-NEXT: [1,2]     .D===========eER    ..   addw	%cx, %bx
-# CHECK-NEXT: [2,0]     . D===========eeeeER..   imulw	%ax, %bx
-# CHECK-NEXT: [2,1]     . D==============eeER.   lzcntw	%ax, %bx
-# CHECK-NEXT: [2,2]     . D================eER   addw	%cx, %bx
+# CHECK:      [0,0]     .DeeeeER  .    .    . .   imulw	%ax, %bx
+# CHECK-NEXT: [0,1]     .D===eeER .    .    . .   lzcntw	%ax, %bx
+# CHECK-NEXT: [0,2]     .D=====eER.    .    . .   addw	%cx, %bx
+# CHECK-NEXT: [1,0]     . D======eeeeER.    . .   imulw	%ax, %bx
+# CHECK-NEXT: [1,1]     . D=========eeER    . .   lzcntw	%ax, %bx
+# CHECK-NEXT: [1,2]     . D===========eER   . .   addw	%cx, %bx
+# CHECK-NEXT: [2,0]     .  D===========eeeeER .   imulw	%ax, %bx
+# CHECK-NEXT: [2,1]     .  D==============eeER.   lzcntw	%ax, %bx
+# CHECK-NEXT: [2,2]     .  D================eER   addw	%cx, %bx
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

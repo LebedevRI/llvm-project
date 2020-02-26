@@ -32,6 +32,7 @@
 #include "Views/SchedulerStatistics.h"
 #include "Views/SummaryView.h"
 #include "Views/TimelineView.h"
+#include "llvm/ADT/Sequence.h"
 #include "llvm/MC/MCAsmBackend.h"
 #include "llvm/MC/MCAsmInfo.h"
 #include "llvm/MC/MCCodeEmitter.h"
@@ -464,9 +465,9 @@ int main(int argc, char **argv) {
     ArrayRef<MCInst> Insts = Region->getInstructions();
     mca::CodeEmitter CE(*STI, *MAB, *MCE, Insts);
     std::vector<std::unique_ptr<mca::Instruction>> LoweredSequence;
-    for (const MCInst &MCI : Insts) {
+    for (unsigned MCID : llvm::seq(0U, (unsigned)Insts.size())) {
       Expected<std::unique_ptr<mca::Instruction>> Inst =
-          IB.createInstruction(MCI);
+          IB.createInstruction(CE, MCID);
       if (!Inst) {
         if (auto NewE = handleErrors(
                 Inst.takeError(),

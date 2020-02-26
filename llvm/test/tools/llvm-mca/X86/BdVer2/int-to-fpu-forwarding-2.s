@@ -29,7 +29,7 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
@@ -85,7 +85,7 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
@@ -141,7 +141,7 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
@@ -197,7 +197,7 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
@@ -253,12 +253,12 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      512
+# CHECK-NEXT: Total Cycles:      513
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
 # CHECK-NEXT: uOps Per Cycle:    1.95
-# CHECK-NEXT: IPC:               0.98
+# CHECK-NEXT: IPC:               0.97
 # CHECK-NEXT: Block RThroughput: 1.0
 
 # CHECK:      Instruction Info:
@@ -309,12 +309,12 @@ movq %rcx, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      500
-# CHECK-NEXT: Total Cycles:      512
+# CHECK-NEXT: Total Cycles:      513
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
 # CHECK-NEXT: uOps Per Cycle:    1.95
-# CHECK-NEXT: IPC:               0.98
+# CHECK-NEXT: IPC:               0.97
 # CHECK-NEXT: Block RThroughput: 1.0
 
 # CHECK:      Instruction Info:

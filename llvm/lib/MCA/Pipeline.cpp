@@ -57,7 +57,7 @@ Error Pipeline::runCycle() {
   }
 
   // Now fetch and execute new instructions.
-  InstRef IR;
+  InstRef IR; // placeholder, not actually used.
   Stage &FirstStage = *Stages[0];
   while (!Err && FirstStage.isAvailable(IR))
     Err = FirstStage.execute(IR);

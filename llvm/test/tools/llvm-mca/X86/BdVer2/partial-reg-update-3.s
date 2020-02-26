@@ -12,7 +12,7 @@ xor %bx, %dx
 
 # CHECK:      Iterations:        1500
 # CHECK-NEXT: Instructions:      4500
-# CHECK-NEXT: Total Cycles:      4503
+# CHECK-NEXT: Total Cycles:      4504
 # CHECK-NEXT: Total uOps:        4500
 
 # CHECK:      Dispatch Width:    4
@@ -69,18 +69,18 @@ xor %bx, %dx
 # CHECK-NEXT:  -      -      -      -      -     1.00   1.00    -      -      -      -      -      -      -      -      -      -      -      -      -      -      -      -     xorw	%bx, %dx
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     01
+# CHECK-NEXT:                     012
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeER .    ..   addw	%cx, %dx
-# CHECK-NEXT: [0,1]     D=eER.    ..   movw	%ax, %dx
-# CHECK-NEXT: [0,2]     D==eER    ..   xorw	%bx, %dx
-# CHECK-NEXT: [1,0]     D===eER   ..   addw	%cx, %dx
-# CHECK-NEXT: [1,1]     .D===eER  ..   movw	%ax, %dx
-# CHECK-NEXT: [1,2]     .D====eER ..   xorw	%bx, %dx
-# CHECK-NEXT: [2,0]     .D=====eER..   addw	%cx, %dx
-# CHECK-NEXT: [2,1]     .D======eER.   movw	%ax, %dx
-# CHECK-NEXT: [2,2]     . D======eER   xorw	%bx, %dx
+# CHECK:      [0,0]     .DeER.    . .   addw	%cx, %dx
+# CHECK-NEXT: [0,1]     .D=eER    . .   movw	%ax, %dx
+# CHECK-NEXT: [0,2]     .D==eER   . .   xorw	%bx, %dx
+# CHECK-NEXT: [1,0]     .D===eER  . .   addw	%cx, %dx
+# CHECK-NEXT: [1,1]     . D===eER . .   movw	%ax, %dx
+# CHECK-NEXT: [1,2]     . D====eER. .   xorw	%bx, %dx
+# CHECK-NEXT: [2,0]     . D=====eER .   addw	%cx, %dx
+# CHECK-NEXT: [2,1]     . D======eER.   movw	%ax, %dx
+# CHECK-NEXT: [2,2]     .  D======eER   xorw	%bx, %dx
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

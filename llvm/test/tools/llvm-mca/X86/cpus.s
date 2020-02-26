@@ -17,7 +17,21 @@ add %edi, %eax
 
 # ALL:              Iterations:        100
 # ALL-NEXT:         Instructions:      100
-# ALL-NEXT:         Total Cycles:      103
+
+# BARCELONA-NEXT:   Total Cycles:      103
+# BDVER2-NEXT:      Total Cycles:      104
+# BROADWELL-NEXT:   Total Cycles:      103
+# BTVER2-NEXT:      Total Cycles:      103
+# HASWELL-NEXT:     Total Cycles:      103
+# IVYBRIDGE-NEXT:   Total Cycles:      103
+# KNL-NEXT:         Total Cycles:      103
+# SANDYBRIDGE-NEXT: Total Cycles:      103
+# SKX-NEXT:         Total Cycles:      103
+# SKX-AVX512-NEXT:  Total Cycles:      103
+# SLM-NEXT:         Total Cycles:      103
+# ZNVER1-NEXT:      Total Cycles:      103
+# ZNVER2-NEXT:      Total Cycles:      103
+
 # ALL-NEXT:         Total uOps:        100
 
 # BARCELONA:        Dispatch Width:    4
@@ -26,8 +40,8 @@ add %edi, %eax
 # BARCELONA-NEXT:   Block RThroughput: 0.3
 
 # BDVER2:           Dispatch Width:    4
-# BDVER2-NEXT:      uOps Per Cycle:    0.97
-# BDVER2-NEXT:      IPC:               0.97
+# BDVER2-NEXT:      uOps Per Cycle:    0.96
+# BDVER2-NEXT:      IPC:               0.96
 # BDVER2-NEXT:      Block RThroughput: 1.0
 
 # BROADWELL:        Dispatch Width:    4

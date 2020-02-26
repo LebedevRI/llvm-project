@@ -25,7 +25,7 @@ vpinsrq $1, %rax, %xmm0, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      1000
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        2000
 
 # CHECK:      Dispatch Width:    4
@@ -83,7 +83,7 @@ vpinsrq $1, %rax, %xmm0, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      1000
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        2000
 
 # CHECK:      Dispatch Width:    4
@@ -141,7 +141,7 @@ vpinsrq $1, %rax, %xmm0, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      1000
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        2000
 
 # CHECK:      Dispatch Width:    4
@@ -199,7 +199,7 @@ vpinsrq $1, %rax, %xmm0, %xmm0
 
 # CHECK:      Iterations:        500
 # CHECK-NEXT: Instructions:      1000
-# CHECK-NEXT: Total Cycles:      2003
+# CHECK-NEXT: Total Cycles:      2004
 # CHECK-NEXT: Total uOps:        2000
 
 # CHECK:      Dispatch Width:    4

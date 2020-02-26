@@ -33,7 +33,7 @@ vandps %xmm4, %xmm1, %xmm0
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      1800
-# CHECK-NEXT: Total Cycles:      3203
+# CHECK-NEXT: Total Cycles:      3204
 # CHECK-NEXT: Total uOps:        3400
 
 # CHECK:      Dispatch Width:    4
@@ -71,44 +71,44 @@ vandps %xmm4, %xmm1, %xmm0
 
 # CHECK:      Timeline view:
 # CHECK-NEXT:                     0123456789          0123456789          0123456789
-# CHECK-NEXT: Index     0123456789          0123456789          0123456789          0123456
+# CHECK-NEXT: Index     0123456789          0123456789          0123456789          01234567
 
-# CHECK:      [0,0]     DeeeeeeeeeER   .    .    .    .    .    .    .    .    .    .    ..   vdivps	%ymm0, %ymm1, %ymm3
-# CHECK-NEXT: [0,1]     DeeeeeE----R   .    .    .    .    .    .    .    .    .    .    ..   vaddps	%xmm0, %xmm1, %xmm3
-# CHECK-NEXT: [0,2]     .D====eeeeeER  .    .    .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,3]     .D======eeeeeER.    .    .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,4]     . D=======eeeeeER   .    .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,5]     . D=========eeeeeER .    .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,6]     .  D==========eeeeeER    .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,7]     .  D============eeeeeER  .    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,8]     .   D=============eeeeeER.    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,9]     .   D==============eeeeeER    .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,10]    .    D==============eeeeeER   .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,11]    .    D===============eeeeeER  .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,12]    .    .D===============eeeeeER .    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,13]    .    .D================eeeeeER.    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,14]    .    . D================eeeeeER    .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,15]    .    . D=================eeeeeER   .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,16]    .    .  D=================eeeeeER  .    .    .    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [0,17]    .    .  D======================eeER.    .    .    .    .    .    ..   vandps	%xmm4, %xmm1, %xmm0
-# CHECK-NEXT: [1,0]     .    .   D=======================eeeeeeeeeER .    .    .    .    ..   vdivps	%ymm0, %ymm1, %ymm3
-# CHECK-NEXT: [1,1]     .    .   D=======================eeeeeE----R .    .    .    .    ..   vaddps	%xmm0, %xmm1, %xmm3
-# CHECK-NEXT: [1,2]     .    .    D===========================eeeeeER.    .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,3]     .    .    D=============================eeeeeER   .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,4]     .    .    .D==============================eeeeeER .    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,5]     .    .    .D================================eeeeeER    .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,6]     .    .    . D=================================eeeeeER  .    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,7]     .    .    . D===================================eeeeeER.    .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,8]     .    .    .  D====================================eeeeeER   .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,9]     .    .    .  D=====================================eeeeeER  .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,10]    .    .    .   D=====================================eeeeeER .    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,11]    .    .    .   D======================================eeeeeER.    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,12]    .    .    .    D======================================eeeeeER    ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,13]    .    .    .    D=======================================eeeeeER   ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,14]    .    .    .    .D=======================================eeeeeER  ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,15]    .    .    .    .D========================================eeeeeER ..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,16]    .    .    .    . D========================================eeeeeER..   vaddps	%ymm3, %ymm1, %ymm4
-# CHECK-NEXT: [1,17]    .    .    .    . D=============================================eeER   vandps	%xmm4, %xmm1, %xmm0
+# CHECK:      [0,0]     .DeeeeeeeeeER  .    .    .    .    .    .    .    .    .    .    . .   vdivps	%ymm0, %ymm1, %ymm3
+# CHECK-NEXT: [0,1]     .DeeeeeE----R  .    .    .    .    .    .    .    .    .    .    . .   vaddps	%xmm0, %xmm1, %xmm3
+# CHECK-NEXT: [0,2]     . D====eeeeeER .    .    .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,3]     . D======eeeeeER    .    .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,4]     .  D=======eeeeeER  .    .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,5]     .  D=========eeeeeER.    .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,6]     .   D==========eeeeeER   .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,7]     .   D============eeeeeER .    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,8]     .    D=============eeeeeER    .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,9]     .    D==============eeeeeER   .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,10]    .    .D==============eeeeeER  .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,11]    .    .D===============eeeeeER .    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,12]    .    . D===============eeeeeER.    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,13]    .    . D================eeeeeER    .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,14]    .    .  D================eeeeeER   .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,15]    .    .  D=================eeeeeER  .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,16]    .    .   D=================eeeeeER .    .    .    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [0,17]    .    .   D======================eeER    .    .    .    .    .    . .   vandps	%xmm4, %xmm1, %xmm0
+# CHECK-NEXT: [1,0]     .    .    D=======================eeeeeeeeeER.    .    .    .    . .   vdivps	%ymm0, %ymm1, %ymm3
+# CHECK-NEXT: [1,1]     .    .    D=======================eeeeeE----R.    .    .    .    . .   vaddps	%xmm0, %xmm1, %xmm3
+# CHECK-NEXT: [1,2]     .    .    .D===========================eeeeeER    .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,3]     .    .    .D=============================eeeeeER  .    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,4]     .    .    . D==============================eeeeeER.    .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,5]     .    .    . D================================eeeeeER   .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,6]     .    .    .  D=================================eeeeeER .    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,7]     .    .    .  D===================================eeeeeER    .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,8]     .    .    .   D====================================eeeeeER  .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,9]     .    .    .   D=====================================eeeeeER .    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,10]    .    .    .    D=====================================eeeeeER.    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,11]    .    .    .    D======================================eeeeeER    . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,12]    .    .    .    .D======================================eeeeeER   . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,13]    .    .    .    .D=======================================eeeeeER  . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,14]    .    .    .    . D=======================================eeeeeER . .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,15]    .    .    .    . D========================================eeeeeER. .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,16]    .    .    .    .  D========================================eeeeeER .   vaddps	%ymm3, %ymm1, %ymm4
+# CHECK-NEXT: [1,17]    .    .    .    .  D=============================================eeER   vandps	%xmm4, %xmm1, %xmm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions

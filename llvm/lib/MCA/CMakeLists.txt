@@ -3,6 +3,7 @@ add_llvm_component_library(LLVMMCA
   Context.cpp
   HWEventListener.cpp
   HardwareUnits/HardwareUnit.cpp
+  HardwareUnits/InstructionBuffer.cpp
   HardwareUnits/LSUnit.cpp
   HardwareUnits/RegisterFile.cpp
   HardwareUnits/ResourceManager.cpp
@@ -11,9 +12,11 @@ add_llvm_component_library(LLVMMCA
   InstrBuilder.cpp
   Instruction.cpp
   Pipeline.cpp
+  Stages/DecodeStage.cpp
   Stages/DispatchStage.cpp
   Stages/EntryStage.cpp
   Stages/ExecuteStage.cpp
+  Stages/FetchStage.cpp
   Stages/InstructionTables.cpp
   Stages/MicroOpQueueStage.cpp
   Stages/RetireStage.cpp

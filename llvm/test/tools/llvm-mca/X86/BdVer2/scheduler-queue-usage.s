@@ -6,12 +6,12 @@ add  %rsi, %rsi
 
 # CHECK:      Iterations:        1
 # CHECK-NEXT: Instructions:      2
-# CHECK-NEXT: Total Cycles:      13
+# CHECK-NEXT: Total Cycles:      14
 # CHECK-NEXT: Total uOps:        2
 
 # CHECK:      Dispatch Width:    4
-# CHECK-NEXT: uOps Per Cycle:    0.15
-# CHECK-NEXT: IPC:               0.15
+# CHECK-NEXT: uOps Per Cycle:    0.14
+# CHECK-NEXT: IPC:               0.14
 # CHECK-NEXT: Block RThroughput: 1.5
 
 # CHECK:      Instruction Info:
@@ -28,8 +28,8 @@ add  %rsi, %rsi
 
 # CHECK:      Schedulers - number of cycles where we saw N micro opcodes issued:
 # CHECK-NEXT: [# issued], [# cycles]
-# CHECK-NEXT:  0,          12  (92.3%)
-# CHECK-NEXT:  2,          1  (7.7%)
+# CHECK-NEXT:  0,          13  (92.9%)
+# CHECK-NEXT:  2,          1  (7.1%)
 
 # CHECK:      Scheduler's queue usage:
 # CHECK-NEXT: [1] Resource name.

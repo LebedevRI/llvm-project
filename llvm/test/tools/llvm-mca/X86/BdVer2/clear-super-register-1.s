@@ -15,7 +15,7 @@ bsf   %rax, %rcx
 
 # CHECK:      Iterations:        100
 # CHECK-NEXT: Instructions:      400
-# CHECK-NEXT: Total Cycles:      900
+# CHECK-NEXT: Total Cycles:      901
 # CHECK-NEXT: Total uOps:        1000
 
 # CHECK:      Dispatch Width:    4
@@ -38,17 +38,17 @@ bsf   %rax, %rcx
 # CHECK-NEXT:  6      3     3.00                        bsfq	%rax, %rcx
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     01234567
+# CHECK-NEXT:                     012345678
 # CHECK-NEXT: Index     0123456789
 
-# CHECK:      [0,0]     DeeeeeeER .    . .   imulq	$5, %rcx, %rax
-# CHECK-NEXT: [0,1]     DeeE----R .    . .   lzcntl	%ecx, %eax
-# CHECK-NEXT: [0,2]     D==eE---R .    . .   andq	%rcx, %rax
-# CHECK-NEXT: [0,3]     .D==eeeER .    . .   bsfq	%rax, %rcx
-# CHECK-NEXT: [1,0]     . D====eeeeeeER. .   imulq	$5, %rcx, %rax
-# CHECK-NEXT: [1,1]     .  D======eeE-R. .   lzcntl	%ecx, %eax
-# CHECK-NEXT: [1,2]     .  D========eER. .   andq	%rcx, %rax
-# CHECK-NEXT: [1,3]     .   D========eeeER   bsfq	%rax, %rcx
+# CHECK:      [0,0]     .DeeeeeeER.    .  .   imulq	$5, %rcx, %rax
+# CHECK-NEXT: [0,1]     .DeeE----R.    .  .   lzcntl	%ecx, %eax
+# CHECK-NEXT: [0,2]     .D==eE---R.    .  .   andq	%rcx, %rax
+# CHECK-NEXT: [0,3]     .   DeeeER.    .  .   bsfq	%rax, %rcx
+# CHECK-NEXT: [1,0]     .    D==eeeeeeER  .   imulq	$5, %rcx, %rax
+# CHECK-NEXT: [1,1]     .    .D====eeE-R  .   lzcntl	%ecx, %eax
+# CHECK-NEXT: [1,2]     .    .D======eER  .   andq	%rcx, %rax
+# CHECK-NEXT: [1,3]     .    .   D====eeeER   bsfq	%rax, %rcx
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
@@ -57,8 +57,8 @@ bsf   %rax, %rcx
 # CHECK-NEXT: [3]: Average time elapsed from WB until retire stage
 
 # CHECK:            [0]    [1]    [2]    [3]
-# CHECK-NEXT: 0.     2     3.0    0.5    0.0       imulq	$5, %rcx, %rax
-# CHECK-NEXT: 1.     2     4.0    2.0    2.5       lzcntl	%ecx, %eax
-# CHECK-NEXT: 2.     2     6.0    0.0    1.5       andq	%rcx, %rax
-# CHECK-NEXT: 3.     2     6.0    0.0    0.0       bsfq	%rax, %rcx
-# CHECK-NEXT:        2     4.8    0.6    1.0       <total>
+# CHECK-NEXT: 0.     2     2.0    0.5    0.0       imulq	$5, %rcx, %rax
+# CHECK-NEXT: 1.     2     3.0    2.0    2.5       lzcntl	%ecx, %eax
+# CHECK-NEXT: 2.     2     5.0    0.0    1.5       andq	%rcx, %rax
+# CHECK-NEXT: 3.     2     3.0    0.0    0.0       bsfq	%rax, %rcx
+# CHECK-NEXT:        2     3.3    0.6    1.0       <total>

@@ -6,7 +6,7 @@ vmulps %xmm0, %xmm0, %xmm0
 
 # CHECK:      Iterations:        5
 # CHECK-NEXT: Instructions:      10
-# CHECK-NEXT: Total Cycles:      53
+# CHECK-NEXT: Total Cycles:      54
 # CHECK-NEXT: Total uOps:        10
 
 # CHECK:      Dispatch Width:    4
@@ -24,9 +24,9 @@ vmulps %xmm0, %xmm0, %xmm0
 
 # CHECK:      Dispatch Logic - number of cycles where we saw N micro opcodes dispatched:
 # CHECK-NEXT: [# dispatched], [# cycles]
-# CHECK-NEXT:  0,              50  (94.3%)
+# CHECK-NEXT:  0,              51  (94.4%)
 # CHECK-NEXT:  2,              1  (1.9%)
-# CHECK-NEXT:  4,              2  (3.8%)
+# CHECK-NEXT:  4,              2  (3.7%)
 
 # CHECK:      Register File statistics:
 # CHECK-NEXT: Total number of mappings created:    10
@@ -77,19 +77,19 @@ vmulps %xmm0, %xmm0, %xmm0
 # CHECK-NEXT:  -      -      -      -      -      -      -      -     1.00    -      -      -      -      -      -     1.00    -      -      -      -      -      -      -     vmulps	%xmm0, %xmm0, %xmm0
 
 # CHECK:      Timeline view:
-# CHECK-NEXT:                     0123456789          0123456789          012
+# CHECK-NEXT:                     0123456789          0123456789          0123
 # CHECK-NEXT: Index     0123456789          0123456789          0123456789
 
-# CHECK:      [0,0]     DeeeeeER  .    .    .    .    .    .    .    .    . .   vaddps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [0,1]     D=====eeeeeER  .    .    .    .    .    .    .    . .   vmulps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [1,0]     D==========eeeeeER  .    .    .    .    .    .    . .   vaddps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [1,1]     D===============eeeeeER  .    .    .    .    .    . .   vmulps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [2,0]     .D===================eeeeeER  .    .    .    .    . .   vaddps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [2,1]     .D========================eeeeeER  .    .    .    . .   vmulps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [3,0]     .D=============================eeeeeER  .    .    . .   vaddps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [3,1]     .D==================================eeeeeER  .    . .   vmulps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [4,0]     . D======================================eeeeeER  . .   vaddps	%xmm0, %xmm0, %xmm0
-# CHECK-NEXT: [4,1]     . D===========================================eeeeeER   vmulps	%xmm0, %xmm0, %xmm0
+# CHECK:      [0,0]     .DeeeeeER .    .    .    .    .    .    .    .    .  .   vaddps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [0,1]     .D=====eeeeeER .    .    .    .    .    .    .    .  .   vmulps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [1,0]     .D==========eeeeeER .    .    .    .    .    .    .  .   vaddps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [1,1]     .D===============eeeeeER .    .    .    .    .    .  .   vmulps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [2,0]     . D===================eeeeeER .    .    .    .    .  .   vaddps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [2,1]     . D========================eeeeeER .    .    .    .  .   vmulps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [3,0]     . D=============================eeeeeER .    .    .  .   vaddps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [3,1]     . D==================================eeeeeER .    .  .   vmulps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [4,0]     .  D======================================eeeeeER .  .   vaddps	%xmm0, %xmm0, %xmm0
+# CHECK-NEXT: [4,1]     .  D===========================================eeeeeER   vmulps	%xmm0, %xmm0, %xmm0
 
 # CHECK:      Average Wait times (based on the timeline view):
 # CHECK-NEXT: [0]: Executions
