@@ -575,6 +575,9 @@ void PassManagerBuilder::populateModulePassManager(
   MPM.add(createCalledValuePropagationPass());
 
   MPM.add(createGlobalOptimizerPass()); // Optimize out global vars
+
+  // Try to improve alloca's chances of being promoted by rewriting them.
+  MPM.add(createAllocaPromotionCoercionPass());
   // Promote any localized global vars.
   MPM.add(createPromoteMemoryToRegisterPass());
 
@@ -924,6 +927,9 @@ void PassManagerBuilder::addLTOOptimizationPasses(legacy::PassManagerBase &PM) {
 
   // Now that we internalized some globals, see if we can hack on them!
   PM.add(createGlobalOptimizerPass());
+
+  // Try to improve alloca's chances of being promoted by rewriting them.
+  PM.add(createAllocaPromotionCoercionPass());
   // Promote any localized global vars.
   PM.add(createPromoteMemoryToRegisterPass());
 

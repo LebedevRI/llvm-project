@@ -1,5 +1,6 @@
 add_llvm_component_library(LLVMTransformUtils
   AddDiscriminators.cpp
+  AllocaPromotionCoercion.cpp
   AMDGPUEmitPrintf.cpp
   ASanStackFrameLayout.cpp
   AssumeBundleBuilder.cpp

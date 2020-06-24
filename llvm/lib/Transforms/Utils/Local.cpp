@@ -470,7 +470,9 @@ bool llvm::RecursivelyDeleteTriviallyDeadInstructionsPermissive(
     MemorySSAUpdater *MSSAU) {
   unsigned S = 0, E = DeadInsts.size(), Alive = 0;
   for (; S != E; ++S) {
-    auto *I = cast<Instruction>(DeadInsts[S]);
+    auto *I = cast_or_null<Instruction>(DeadInsts[S]);
+    if (!I)
+      continue;
     if (!isInstructionTriviallyDead(I)) {
       DeadInsts[S] = nullptr;
       ++Alive;

@@ -70,6 +70,7 @@ void initializeAddressSanitizerLegacyPassPass(PassRegistry &);
 void initializeAggressiveInstCombinerLegacyPassPass(PassRegistry&);
 void initializeAliasSetPrinterPass(PassRegistry&);
 void initializeAlignmentFromAssumptionsPass(PassRegistry&);
+void initializeAllocaPromotionCoercionLegacyPassPass(PassRegistry &);
 void initializeAlwaysInlinerLegacyPassPass(PassRegistry&);
 void initializeAssumeSimplifyPassLegacyPassPass(PassRegistry &);
 void initializeOpenMPOptLegacyPassPass(PassRegistry &);

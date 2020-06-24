@@ -92,6 +92,14 @@ FunctionPass *createAddDiscriminatorsPass();
 
 //===----------------------------------------------------------------------===//
 //
+// createAllocaPromotionCoercionPass - Try to rewrite (uses of) static allocas
+// in entry basic blocks to operate on the whole alloca, if that makes alloca
+// eligible for mem2reg promotion.
+//
+FunctionPass *createAllocaPromotionCoercionPass();
+
+//===----------------------------------------------------------------------===//
+//
 // PromoteMemoryToRegister - This pass is used to promote memory references to
 // be register references. A simple example of the transformation performed by
 // this pass is:
