@@ -1,4 +1,4 @@
-; RUN: opt -S -loop-sink < %s | FileCheck %s
+; RUN: opt -S -pgo-loop-sink < %s | FileCheck %s
 
 ; CHECK: pr39570
 ; Make sure not to assert.

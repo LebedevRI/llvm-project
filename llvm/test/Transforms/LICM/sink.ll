@@ -1,6 +1,6 @@
 ; RUN: opt -S -licm < %s | FileCheck %s --check-prefix=CHECK-LICM
-; RUN: opt -S -licm < %s | opt -S -loop-sink | FileCheck %s --check-prefix=CHECK-SINK
-; RUN: opt -S < %s -passes='require<opt-remark-emit>,loop(licm),loop-sink' \
+; RUN: opt -S -licm < %s | opt -S -pgo-loop-sink | FileCheck %s --check-prefix=CHECK-SINK
+; RUN: opt -S < %s -passes='require<opt-remark-emit>,loop(licm),pgo-loop-sink' \
 ; RUN:     | FileCheck %s --check-prefix=CHECK-SINK
 ; RUN: opt -S -licm -enable-mssa-loop-dependency=true -verify-memoryssa < %s | FileCheck %s --check-prefix=CHECK-LICM
 

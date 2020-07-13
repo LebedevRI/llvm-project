@@ -1,4 +1,4 @@
-; RUN: opt -S -loop-sink < %s | FileCheck %s
+; RUN: opt -S -pgo-loop-sink < %s | FileCheck %s
 
 ; The load instruction should not be sunk into following loop.
 ; CHECK:      @foo

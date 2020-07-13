@@ -228,7 +228,7 @@ bool LPPassManager::runOnFunction(Function &F) {
         // is that LPPassManager might run passes which do not require LCSSA
         // form (LoopPassPrinter for example). We should skip verification for
         // such passes.
-        // FIXME: Loop-sink currently break LCSSA. Fix it and reenable the
+        // FIXME: PGO-Loop-sink currently break LCSSA. Fix it and reenable the
         // verification!
 #if 0
         if (mustPreserveAnalysisID(LCSSAVerificationPass::ID))

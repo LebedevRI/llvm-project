@@ -221,7 +221,7 @@
 ; CHECK-O-NEXT: Running pass: LCSSAPass
 ; CHECK-O-NEXT: Finished {{.*}}Function pass manager run
 ; CHECK-O-NEXT: Running pass: AlignmentFromAssumptionsPass
-; CHECK-O-NEXT: Running pass: LoopSinkPass
+; CHECK-O-NEXT: Running pass: PGOLoopSinkPass
 ; CHECK-O-NEXT: Running pass: InstSimplifyPass
 ; CHECK-O-NEXT: Running pass: DivRemPairsPass
 ; CHECK-O-NEXT: Running pass: SimplifyCFGPass

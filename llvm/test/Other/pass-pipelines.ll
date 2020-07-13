@@ -104,7 +104,7 @@
 ; SPLIT: Hot Cold Splitting
 ; CHECK-O2: FunctionPass Manager
 ; CHECK-O2: Loop Pass Manager
-; CHECK-O2-NEXT: Loop Sink
+; CHECK-O2-NEXT: PGO Loop Sink
 ; CHECK-O2: Simplify the CFG
 ; CHECK-O2-NOT: Manager
 ;

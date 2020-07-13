@@ -146,7 +146,6 @@
 #include "llvm/Transforms/Scalar/LoopPredication.h"
 #include "llvm/Transforms/Scalar/LoopRotation.h"
 #include "llvm/Transforms/Scalar/LoopSimplifyCFG.h"
-#include "llvm/Transforms/Scalar/LoopSink.h"
 #include "llvm/Transforms/Scalar/LoopStrengthReduce.h"
 #include "llvm/Transforms/Scalar/LoopUnrollAndJamPass.h"
 #include "llvm/Transforms/Scalar/LoopUnrollPass.h"
@@ -162,6 +161,7 @@
 #include "llvm/Transforms/Scalar/MergedLoadStoreMotion.h"
 #include "llvm/Transforms/Scalar/NaryReassociate.h"
 #include "llvm/Transforms/Scalar/NewGVN.h"
+#include "llvm/Transforms/Scalar/PGOLoopSink.h"
 #include "llvm/Transforms/Scalar/PartiallyInlineLibCalls.h"
 #include "llvm/Transforms/Scalar/Reassociate.h"
 #include "llvm/Transforms/Scalar/RewriteStatepointsForGC.h"
@@ -1175,11 +1175,11 @@ ModulePassManager PassBuilder::buildModuleOptimizationPipeline(
   if (EnableHotColdSplit && !LTOPreLink)
     MPM.addPass(HotColdSplittingPass());
 
-  // LoopSink pass sinks instructions hoisted by LICM, which serves as a
+  // PGOLoopSink pass sinks instructions hoisted by LICM, which serves as a
   // canonicalization pass that enables other optimizations. As a result,
-  // LoopSink pass needs to be a very late IR pass to avoid undoing LICM
+  // PGOLoopSink pass needs to be a very late IR pass to avoid undoing LICM
   // result too early.
-  OptimizePM.addPass(LoopSinkPass());
+  OptimizePM.addPass(PGOLoopSinkPass());
 
   // And finally clean up LCSSA form before generating code.
   OptimizePM.addPass(InstSimplifyPass());
@@ -1189,7 +1189,7 @@ ModulePassManager PassBuilder::buildModuleOptimizationPipeline(
   // flattening of blocks.
   OptimizePM.addPass(DivRemPairsPass());
 
-  // LoopSink (and other loop passes since the last simplifyCFG) might have
+  // PGOLoopSink (and other loop passes since the last simplifyCFG) might have
   // resulted in single-entry-single-exit or empty blocks. Clean up the CFG.
   OptimizePM.addPass(SimplifyCFGPass());
 

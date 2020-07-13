@@ -839,11 +839,11 @@ void PassManagerBuilder::populateModulePassManager(
   if (CallGraphProfile)
     MPM.add(createCGProfileLegacyPass());
 
-  // LoopSink pass sinks instructions hoisted by LICM, which serves as a
+  // PGOLoopSink pass sinks instructions hoisted by LICM, which serves as a
   // canonicalization pass that enables other optimizations. As a result,
-  // LoopSink pass needs to be a very late IR pass to avoid undoing LICM
+  // PGOLoopSink pass needs to be a very late IR pass to avoid undoing LICM
   // result too early.
-  MPM.add(createLoopSinkPass());
+  MPM.add(createPGOLoopSinkPass());
   // Get rid of LCSSA nodes.
   MPM.add(createInstSimplifyLegacyPass());
 
@@ -852,7 +852,7 @@ void PassManagerBuilder::populateModulePassManager(
   // flattening of blocks.
   MPM.add(createDivRemPairsPass());
 
-  // LoopSink (and other loop passes since the last simplifyCFG) might have
+  // PGOLoopSink (and other loop passes since the last simplifyCFG) might have
   // resulted in single-entry-single-exit or empty blocks. Clean up the CFG.
   MPM.add(createCFGSimplificationPass());
 

@@ -4,8 +4,8 @@
 ;; Show that there's no difference after running another simplify CFG
 ; RUN: diff %t2.ll %t3.ll
 
-; Test from LoopSink pass, leaves some single-entry single-exit basic blocks.
-; After LoopSink, we get a basic block .exit.loopexit which has one entry and
+; Test from PGOLoopSink pass, leaves some single-entry single-exit basic blocks.
+; After PGOLoopSink, we get a basic block .exit.loopexit which has one entry and
 ; one exit, the only instruction is a branch. Make sure it doesn't show up.
 ; Make sure they disappear at -O1.
 

@@ -1,5 +1,5 @@
-; RUN: opt -S -loop-sink < %s | FileCheck %s
-; RUN: opt -S -aa-pipeline=basic-aa -passes=loop-sink < %s | FileCheck %s
+; RUN: opt -S -pgo-loop-sink < %s | FileCheck %s
+; RUN: opt -S -aa-pipeline=basic-aa -passes=pgo-loop-sink < %s | FileCheck %s
 
 @g = global i32 0, align 4
 

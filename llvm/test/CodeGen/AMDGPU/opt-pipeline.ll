@@ -296,7 +296,7 @@
 ; GCN-O1-NEXT:       Scalar Evolution Analysis
 ; GCN-O1-NEXT:       Block Frequency Analysis
 ; GCN-O1-NEXT:       Loop Pass Manager
-; GCN-O1-NEXT:         Loop Sink
+; GCN-O1-NEXT:         PGO Loop Sink
 ; GCN-O1-NEXT:       Lazy Branch Probability Analysis
 ; GCN-O1-NEXT:       Lazy Block Frequency Analysis
 ; GCN-O1-NEXT:       Optimization Remark Emitter
@@ -649,7 +649,7 @@
 ; GCN-O2-NEXT:       Scalar Evolution Analysis
 ; GCN-O2-NEXT:       Block Frequency Analysis
 ; GCN-O2-NEXT:       Loop Pass Manager
-; GCN-O2-NEXT:         Loop Sink
+; GCN-O2-NEXT:         PGO Loop Sink
 ; GCN-O2-NEXT:       Lazy Branch Probability Analysis
 ; GCN-O2-NEXT:       Lazy Block Frequency Analysis
 ; GCN-O2-NEXT:       Optimization Remark Emitter
@@ -1007,7 +1007,7 @@
 ; GCN-O3-NEXT:       Scalar Evolution Analysis
 ; GCN-O3-NEXT:       Block Frequency Analysis
 ; GCN-O3-NEXT:       Loop Pass Manager
-; GCN-O3-NEXT:         Loop Sink
+; GCN-O3-NEXT:         PGO Loop Sink
 ; GCN-O3-NEXT:       Lazy Branch Probability Analysis
 ; GCN-O3-NEXT:       Lazy Block Frequency Analysis
 ; GCN-O3-NEXT:       Optimization Remark Emitter

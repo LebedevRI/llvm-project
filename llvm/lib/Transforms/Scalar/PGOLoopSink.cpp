@@ -1,4 +1,4 @@
-//===-- LoopSink.cpp - Loop Sink Pass -------------------------------------===//
+//===-- PGOLoopSink.cpp - PGO Loop Sink Pass -------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -30,7 +30,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/LoopSink.h"
+#include "llvm/Transforms/Scalar/PGOLoopSink.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/AliasSetTracker.h"
@@ -53,7 +53,7 @@
 #include "llvm/Transforms/Utils/LoopUtils.h"
 using namespace llvm;
 
-#define DEBUG_TYPE "loopsink"
+#define DEBUG_TYPE "pgoloopsink"
 
 STATISTIC(NumLoopSunk, "Number of instructions sunk into loop");
 STATISTIC(NumLoopSunkCloned, "Number of cloned instructions sunk into loop");
@@ -257,7 +257,7 @@ static bool sinkLoopInvariantInstructions(Loop &L, AAResults &AA, LoopInfo &LI,
   if (!Preheader)
     return false;
 
-  // Enable LoopSink only when runtime profile is available.
+  // Enable PGOLoopSink only when runtime profile is available.
   // With static profile, the sinking decision may be sub-optimal.
   if (!Preheader->getParent()->hasProfileData())
     return false;
@@ -311,7 +311,7 @@ static bool sinkLoopInvariantInstructions(Loop &L, AAResults &AA, LoopInfo &LI,
   return Changed;
 }
 
-PreservedAnalyses LoopSinkPass::run(Function &F, FunctionAnalysisManager &FAM) {
+PreservedAnalyses PGOLoopSinkPass::run(Function &F, FunctionAnalysisManager &FAM) {
   LoopInfo &LI = FAM.getResult<LoopAnalysis>(F);
   // Nothing to do if there are no loops.
   if (LI.empty())
@@ -348,10 +348,10 @@ PreservedAnalyses LoopSinkPass::run(Function &F, FunctionAnalysisManager &FAM) {
 }
 
 namespace {
-struct LegacyLoopSinkPass : public LoopPass {
+struct LegacyPGOLoopSinkPass : public LoopPass {
   static char ID;
-  LegacyLoopSinkPass() : LoopPass(ID) {
-    initializeLegacyLoopSinkPassPass(*PassRegistry::getPassRegistry());
+  LegacyPGOLoopSinkPass() : LoopPass(ID) {
+    initializeLegacyPGOLoopSinkPassPass(*PassRegistry::getPassRegistry());
   }
 
   bool runOnLoop(Loop *L, LPPassManager &LPM) override {
@@ -375,11 +375,12 @@ struct LegacyLoopSinkPass : public LoopPass {
 };
 }
 
-char LegacyLoopSinkPass::ID = 0;
-INITIALIZE_PASS_BEGIN(LegacyLoopSinkPass, "loop-sink", "Loop Sink", false,
-                      false)
+char LegacyPGOLoopSinkPass::ID = 0;
+INITIALIZE_PASS_BEGIN(LegacyPGOLoopSinkPass, "pgo-loop-sink", "PGO Loop Sink",
+                      false, false)
 INITIALIZE_PASS_DEPENDENCY(LoopPass)
 INITIALIZE_PASS_DEPENDENCY(BlockFrequencyInfoWrapperPass)
-INITIALIZE_PASS_END(LegacyLoopSinkPass, "loop-sink", "Loop Sink", false, false)
+INITIALIZE_PASS_END(LegacyPGOLoopSinkPass, "pgo-loop-sink", "PGO Loop Sink",
+                    false, false)
 
-Pass *llvm::createLoopSinkPass() { return new LegacyLoopSinkPass(); }
+Pass *llvm::createPGOLoopSinkPass() { return new LegacyPGOLoopSinkPass(); }

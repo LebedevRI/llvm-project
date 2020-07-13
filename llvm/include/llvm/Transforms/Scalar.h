@@ -143,10 +143,10 @@ Pass *createLICMPass(unsigned LicmMssaOptCap,
 
 //===----------------------------------------------------------------------===//
 //
-// LoopSink - This pass sinks invariants from preheader to loop body where
-// frequency is lower than loop preheader.
+// PGOLoopSink - This pass sinks invariants from preheader to loop body where
+// frequency is lower than loop preheader, as per the PGO profile.
 //
-Pass *createLoopSinkPass();
+Pass *createPGOLoopSinkPass();
 
 //===----------------------------------------------------------------------===//
 //
