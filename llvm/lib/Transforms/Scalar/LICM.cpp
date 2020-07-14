@@ -142,9 +142,6 @@ static void hoist(Instruction &I, const DominatorTree *DT, const Loop *CurLoop,
                   BasicBlock *Dest, ICFLoopSafetyInfo *SafetyInfo,
                   MemorySSAUpdater *MSSAU, ScalarEvolution *SE,
                   OptimizationRemarkEmitter *ORE);
-static bool sink(Instruction &I, LoopInfo *LI, DominatorTree *DT,
-                 const Loop *CurLoop, ICFLoopSafetyInfo *SafetyInfo,
-                 MemorySSAUpdater *MSSAU, OptimizationRemarkEmitter *ORE);
 static bool isSafeToExecuteUnconditionally(Instruction &Inst,
                                            const DominatorTree *DT,
                                            const Loop *CurLoop,
@@ -163,10 +160,6 @@ static Instruction *cloneInstructionInExitBlock(
 
 static void eraseInstruction(Instruction &I, ICFLoopSafetyInfo &SafetyInfo,
                              AliasSetTracker *AST, MemorySSAUpdater *MSSAU);
-
-static void moveInstructionBefore(Instruction &I, Instruction &Dest,
-                                  ICFLoopSafetyInfo &SafetyInfo,
-                                  MemorySSAUpdater *MSSAU, ScalarEvolution *SE);
 
 namespace {
 struct LoopInvariantCodeMotion {
@@ -501,7 +494,7 @@ bool llvm::sinkRegion(DomTreeNode *N, AAResults *AA, LoopInfo *LI,
           isNotUsedOrFreeInLoop(I, CurLoop, SafetyInfo, TTI, FreeInLoop) &&
           canSinkOrHoistInst(I, AA, DT, CurLoop, CurAST, MSSAU, true, &Flags,
                              ORE)) {
-        if (sink(I, LI, DT, CurLoop, SafetyInfo, MSSAU, ORE)) {
+        if (sinkOutOfLoop(I, LI, DT, CurLoop, SafetyInfo, MSSAU, ORE)) {
           if (!FreeInLoop) {
             ++II;
             salvageDebugInfo(I);
@@ -1403,10 +1396,9 @@ static void eraseInstruction(Instruction &I, ICFLoopSafetyInfo &SafetyInfo,
   I.eraseFromParent();
 }
 
-static void moveInstructionBefore(Instruction &I, Instruction &Dest,
-                                  ICFLoopSafetyInfo &SafetyInfo,
-                                  MemorySSAUpdater *MSSAU,
-                                  ScalarEvolution *SE) {
+void llvm::moveInstructionBefore(Instruction &I, Instruction &Dest,
+                                 ICFLoopSafetyInfo &SafetyInfo,
+                                 MemorySSAUpdater *MSSAU, ScalarEvolution *SE) {
   SafetyInfo.removeInstruction(&I);
   SafetyInfo.insertInstructionTo(&I, Dest.getParent());
   I.moveBefore(&Dest);
@@ -1528,9 +1520,10 @@ static void splitPredecessorsOfLoopExit(PHINode *PN, DominatorTree *DT,
 /// This method is guaranteed to remove the original instruction from its
 /// position, and may either delete it or move it to outside of the loop.
 ///
-static bool sink(Instruction &I, LoopInfo *LI, DominatorTree *DT,
-                 const Loop *CurLoop, ICFLoopSafetyInfo *SafetyInfo,
-                 MemorySSAUpdater *MSSAU, OptimizationRemarkEmitter *ORE) {
+bool llvm::sinkOutOfLoop(Instruction &I, LoopInfo *LI, DominatorTree *DT,
+                         const Loop *CurLoop, ICFLoopSafetyInfo *SafetyInfo,
+                         MemorySSAUpdater *MSSAU,
+                         OptimizationRemarkEmitter *ORE) {
   LLVM_DEBUG(dbgs() << "LICM sinking instruction: " << I << "\n");
   ORE->emit([&]() {
     return OptimizationRemark(DEBUG_TYPE, "InstSunk", &I)

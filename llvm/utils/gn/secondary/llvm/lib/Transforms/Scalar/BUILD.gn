@@ -48,6 +48,7 @@ static_library("Scalar") {
     "LoopRerollPass.cpp",
     "LoopRotation.cpp",
     "LoopSimplifyCFG.cpp",
+    "LoopSink.cpp",
     "LoopStrengthReduce.cpp",
     "LoopUnrollAndJamPass.cpp",
     "LoopUnrollPass.cpp",

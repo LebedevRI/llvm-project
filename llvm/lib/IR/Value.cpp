@@ -200,6 +200,12 @@ bool Value::isUsedInBasicBlock(const BasicBlock *BB) const {
   // Scan both lists simultaneously until one is exhausted. This limits the
   // search to the shorter list.
   BasicBlock::const_iterator BI = BB->begin(), BE = BB->end();
+  if (auto *I = dyn_cast<Instruction>(this))
+    if (I->getParent() == BB)
+      // In well-defined IR the def must dominate uses, so if we are interested
+      // in the same basic block in which the value is defined,
+      // we can start checking from the next instruction after the def.
+      BI = std::next(I->getIterator());
   const_user_iterator UI = user_begin(), UE = user_end();
   for (; BI != BE && UI != UE; ++BI, ++UI) {
     // Scan basic block: Check if this Value is used by the instruction at BI.

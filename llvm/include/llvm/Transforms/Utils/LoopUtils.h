@@ -293,6 +293,10 @@ bool hasIterationCountInvariantInParent(Loop *L, ScalarEvolution &SE);
 /// getAnalysisUsage.
 void getLoopAnalysisUsage(AnalysisUsage &AU);
 
+void moveInstructionBefore(Instruction &I, Instruction &Dest,
+                           ICFLoopSafetyInfo &SafetyInfo,
+                           MemorySSAUpdater *MSSAU, ScalarEvolution *SE);
+
 /// Returns true if is legal to hoist or sink this instruction disregarding the
 /// possible introduction of faults.  Reasoning about potential faulting
 /// instructions is the responsibility of the caller since it is challenging to
@@ -307,6 +311,15 @@ bool canSinkOrHoistInst(Instruction &I, AAResults *AA, DominatorTree *DT,
                         MemorySSAUpdater *MSSAU, bool TargetExecutesOncePerLoop,
                         SinkAndHoistLICMFlags *LICMFlags = nullptr,
                         OptimizationRemarkEmitter *ORE = nullptr);
+
+/// When an instruction is found to only be used outside of the loop, this
+/// function moves it to the exit blocks and patches up SSA form as needed.
+/// This method is guaranteed to remove the original instruction from its
+/// position, and may either delete it or move it to outside of the loop.
+///
+bool sinkOutOfLoop(Instruction &I, LoopInfo *LI, DominatorTree *DT,
+                   const Loop *CurLoop, ICFLoopSafetyInfo *SafetyInfo,
+                   MemorySSAUpdater *MSSAU, OptimizationRemarkEmitter *ORE);
 
 /// Returns a Min/Max operation corresponding to MinMaxRecurrenceKind.
 Value *createMinMaxOp(IRBuilderBase &Builder,

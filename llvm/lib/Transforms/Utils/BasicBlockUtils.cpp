@@ -497,6 +497,28 @@ void llvm::ReplaceInstWithInst(Instruction *From, Instruction *To) {
   ReplaceInstWithInst(From->getParent()->getInstList(), BI, To);
 }
 
+BasicBlock *llvm::InsertFallthroughBlock(BasicBlock *From, BasicBlock *To,
+                                         DomTreeUpdater *DTU, LoopInfo *LI) {
+  BasicBlock *New =
+      BasicBlock::Create(From->getContext(), To->getName() + ".fallthrough",
+                         From->getParent(), To);
+
+  From->getTerminator()->replaceSuccessorWith(To, New);
+  BranchInst *BI = BranchInst::Create(To, New);
+  BI->setDebugLoc(From->getTerminator()->getDebugLoc());
+  To->replacePhiUsesWith(From, New);
+
+  if (LI)
+    if (Loop *L = LI->getLoopFor(From))
+      L->addBasicBlockToLoop(New, *LI);
+
+  DTU->applyUpdates({{DominatorTree::Insert, From, New},
+                     {DominatorTree::Insert, New, To},
+                     {DominatorTree::Delete, From, To}});
+
+  return New;
+}
+
 BasicBlock *llvm::SplitEdge(BasicBlock *BB, BasicBlock *Succ, DominatorTree *DT,
                             LoopInfo *LI, MemorySSAUpdater *MSSAU) {
   unsigned SuccNum = GetSuccessorNumber(BB, Succ);

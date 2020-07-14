@@ -214,6 +214,7 @@ void initializeLazyValueInfoPrinterPass(PassRegistry&);
 void initializeLazyValueInfoWrapperPassPass(PassRegistry&);
 void initializeLegacyDivergenceAnalysisPass(PassRegistry&);
 void initializeLegacyLICMPassPass(PassRegistry&);
+void initializeLegacyLoopSinkPassPass(PassRegistry&);
 void initializeLegacyPGOLoopSinkPassPass(PassRegistry&);
 void initializeLegalizerPass(PassRegistry&);
 void initializeGISelCSEAnalysisWrapperPassPass(PassRegistry &);

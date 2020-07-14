@@ -29,7 +29,7 @@ static cl::opt<bool> ExpensiveAsserts(
     "ipt-expensive-asserts",
     cl::desc("Perform expensive assert validation on every query to Instruction"
              " Precedence Tracking"),
-    cl::init(false), cl::Hidden);
+    cl::init(true), cl::Hidden);
 #endif
 
 const Instruction *InstructionPrecedenceTracking::getFirstSpecialInstruction(

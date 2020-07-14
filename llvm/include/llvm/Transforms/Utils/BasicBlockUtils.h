@@ -244,6 +244,13 @@ unsigned SplitAllCriticalEdges(Function &F,
                                const CriticalEdgeSplittingOptions &Options =
                                    CriticalEdgeSplittingOptions());
 
+/// Instead of branching from basic block \p From to basic block \p To,
+/// branch to a new (returned) basic block, and from it then fallthrough
+/// to the original basic block \p To,
+BasicBlock *InsertFallthroughBlock(BasicBlock *From, BasicBlock *To,
+                                   DomTreeUpdater *DTU = nullptr,
+                                   LoopInfo *LI = nullptr);
+
 /// Split the edge connecting specified block.
 BasicBlock *SplitEdge(BasicBlock *From, BasicBlock *To,
                       DominatorTree *DT = nullptr, LoopInfo *LI = nullptr,

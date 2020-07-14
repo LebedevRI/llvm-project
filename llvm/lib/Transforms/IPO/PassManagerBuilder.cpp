@@ -343,6 +343,7 @@ void PassManagerBuilder::addPGOInstrPasses(legacy::PassManagerBase &MPM,
       Options.InstrProfileOutput = PGOInstrGen;
     Options.DoCounterPromotion = true;
     Options.UseBFIInPromotion = IsCS;
+    MPM.add(createLoopSinkPass());
     MPM.add(createLoopRotatePass());
     MPM.add(createInstrProfilingLegacyPass(Options, IsCS));
   }
@@ -408,6 +409,8 @@ void PassManagerBuilder::addFunctionSimplificationPasses(
     MPM.add(createLoopInstSimplifyPass());
     MPM.add(createLoopSimplifyCFGPass());
   }
+  // Before rotating loops, sink as much stuff from header as possible.
+  MPM.add(createLoopSinkPass());
   // Rotate Loop - disable header duplication at -Oz
   MPM.add(createLoopRotatePass(SizeLevel == 2 ? 0 : -1));
   // TODO: Investigate promotion cap for O1.
@@ -729,6 +732,9 @@ void PassManagerBuilder::populateModulePassManager(
   }
 
   addExtensionsToPM(EP_VectorizerStart, MPM);
+
+  // Before rotating loops, sink as much stuff from header as possible.
+  MPM.add(createLoopSinkPass());
 
   // Re-rotate loops in all our loop nests. These may have fallout out of
   // rotated form due to GVN or other transformations, and the vectorizer relies

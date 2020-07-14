@@ -61,6 +61,7 @@ void llvm::initializeScalarOpts(PassRegistry &Registry) {
   initializeInstSimplifyLegacyPassPass(Registry);
   initializeJumpThreadingPass(Registry);
   initializeLegacyLICMPassPass(Registry);
+  initializeLegacyLoopSinkPassPass(Registry);
   initializeLegacyPGOLoopSinkPassPass(Registry);
   initializeLoopFuseLegacyPass(Registry);
   initializeLoopDataPrefetchLegacyPassPass(Registry);
@@ -168,6 +169,10 @@ void LLVMAddIndVarSimplifyPass(LLVMPassManagerRef PM) {
 
 void LLVMAddJumpThreadingPass(LLVMPassManagerRef PM) {
   unwrap(PM)->add(createJumpThreadingPass());
+}
+
+void LLVMAddLoopSinkPass(LLVMPassManagerRef PM) {
+  unwrap(PM)->add(createLoopSinkPass());
 }
 
 void LLVMAddPGOLoopSinkPass(LLVMPassManagerRef PM) {
