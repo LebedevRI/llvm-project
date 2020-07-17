@@ -877,6 +877,8 @@ void PassManagerBuilder::populateModulePassManager(
     // Rename anon globals to be able to handle them in the summary
     MPM.add(createNameAnonGlobalPass());
   }
+
+  MPM.add(createInstCountPass());
 }
 
 void PassManagerBuilder::addLTOOptimizationPasses(legacy::PassManagerBase &PM) {

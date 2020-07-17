@@ -1273,6 +1273,8 @@ PassBuilder::buildPerModuleDefaultPipeline(OptimizationLevel Level,
   // Now add the optimization pipeline.
   MPM.addPass(buildModuleOptimizationPipeline(Level, DebugLogging, LTOPreLink));
 
+  MPM.addPass(createModuleToFunctionPassAdaptor(InstCountPass()));
+
   return MPM;
 }
 
