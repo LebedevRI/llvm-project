@@ -918,6 +918,8 @@ void PassManagerBuilder::populateModulePassManager(
   }
 
   MPM.add(createAnnotationRemarksLegacyPass());
+
+  MPM.add(createInstCountPass());
 }
 
 void PassManagerBuilder::addLTOOptimizationPasses(legacy::PassManagerBase &PM) {

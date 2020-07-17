@@ -1449,6 +1449,8 @@ PassBuilder::buildPerModuleDefaultPipeline(OptimizationLevel Level,
   if (LTOPreLink)
     addRequiredLTOPreLinkPasses(MPM);
 
+  MPM.addPass(createModuleToFunctionPassAdaptor(InstCountPass()));
+
   return MPM;
 }
 

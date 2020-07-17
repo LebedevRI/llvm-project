@@ -28,6 +28,17 @@ STATISTIC(TotalInsts, "Number of instructions (of all types)");
 STATISTIC(TotalBlocks, "Number of basic blocks");
 STATISTIC(TotalFuncs, "Number of non-external functions");
 
+STATISTIC(TotalScalarInsts, "Number of scalar instructions");
+STATISTIC(TotalVectorInsts, "Number of vector instructions");
+STATISTIC(TotalIntegerInsts, "Number of integer instructions");
+STATISTIC(TotalIntegerScalarInsts, "Number of scalar integer instructions");
+STATISTIC(TotalIntegerVectorInsts, "Number of vector integer instructions");
+STATISTIC(TotalFloatingPointInsts, "Number of floating-point instructions");
+STATISTIC(TotalFloatingPointScalarInsts,
+          "Number of scalar floating-point instructions");
+STATISTIC(TotalFloatingPointVectorInsts,
+          "Number of vector floating-point instructions");
+
 #define HANDLE_INST(N, OPCODE, CLASS)                                          \
   STATISTIC(Num##OPCODE##Inst, "Number of " #OPCODE " insts");
 
@@ -37,13 +48,61 @@ namespace {
 class InstCount : public InstVisitor<InstCount> {
   friend class InstVisitor<InstCount>;
 
+  void defsAreLandingpads(Value *V, Function &F) {
+    if (auto *PHI = dyn_cast<PHINode>(V)) {
+      for (const Use &U : PHI->incoming_values())
+        defsAreLandingpads(U.get(), F);
+      return;
+    }
+    if (!isa<LandingPadInst>(V)) {
+      errs() << "def is not a phi and not a landingpad: " << *V;
+      F.dump();
+      assert(false);
+    }
+  }
+
+  void sanityCheck(Instruction &I) {
+    auto *RI = dyn_cast<ResumeInst>(&I);
+    if (!RI)
+      return;
+    /*if (auto *PHI = dyn_cast<PHINode>(RI->getValue()))*/ {
+      defsAreLandingpads(RI->getValue(), *I.getFunction());
+    }
+  }
+
+  void countInstructionCharacteristics(Instruction &I) {
+    if (I.getType()->isVectorTy())
+      ++TotalVectorInsts;
+    else
+      ++TotalScalarInsts;
+
+    if (I.getType()->getScalarType()->isIntegerTy()) {
+      ++TotalIntegerInsts;
+      if (I.getType()->isVectorTy())
+        ++TotalIntegerVectorInsts;
+      else
+        ++TotalIntegerScalarInsts;
+    }
+
+    if (I.getType()->getScalarType()->isFloatingPointTy()) {
+      ++TotalFloatingPointInsts;
+      if (I.getType()->isVectorTy())
+        ++TotalFloatingPointVectorInsts;
+      else
+        ++TotalFloatingPointScalarInsts;
+    }
+
+    // sanityCheck(I);
+  }
+
   void visitFunction(Function &F) { ++TotalFuncs; }
   void visitBasicBlock(BasicBlock &BB) { ++TotalBlocks; }
 
 #define HANDLE_INST(N, OPCODE, CLASS)                                          \
-  void visit##OPCODE(CLASS &) {                                                \
+  void visit##OPCODE(CLASS &I) {                                               \
     ++Num##OPCODE##Inst;                                                       \
     ++TotalInsts;                                                              \
+    countInstructionCharacteristics(I);                                        \
   }
 
 #include "llvm/IR/Instruction.def"
