@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "InstCombineInternal.h"
+#include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/Statistic.h"
@@ -35,6 +36,10 @@ STATISTIC(NumPHIsOfInsertValues,
 STATISTIC(NumPHIsOfExtractValues,
           "Number of phi-of-extractvalue turned into extractvalue-of-phi");
 STATISTIC(NumPHICSEs, "Number of PHI's that got CSE'd");
+
+STATISTIC(NumPHIsOfExtractValues_PHIsMax, "");
+STATISTIC(NumPHIsOfExtractValues_NodesMax, "");
+STATISTIC(NumPHIsOfExtractValues_ExtractValueInstsMax, "");
 
 /// The PHI arguments will be folded into a single operation with a PHI node
 /// as input. The debug location of the single operation will be the merged
@@ -340,39 +345,195 @@ InstCombinerImpl::foldPHIArgInsertValueInstructionIntoPHI(PHINode &PN) {
 }
 
 /// If we have something like phi [extractvalue(a,0), extractvalue(b,0)],
-/// turn this into a phi[a,b] and a single extractvalue.
+/// or phi [phi [extractvalue(a,0), extractvalue(b,0)], extractvalue(c,0)]
+/// turn this into a phi[a,b] / phi[phi[a,b],c] and a single extractvalue.
 Instruction *
-InstCombinerImpl::foldPHIArgExtractValueInstructionIntoPHI(PHINode &PN) {
-  auto *FirstEVI = cast<ExtractValueInst>(PN.getIncomingValue(0));
-
-  // Scan to see if all operands are `extractvalue`'s with the same indicies,
-  // and all have a single use.
-  for (unsigned i = 1; i != PN.getNumIncomingValues(); ++i) {
-    auto *I = dyn_cast<ExtractValueInst>(PN.getIncomingValue(i));
-    if (!I || !I->hasOneUser() || I->getIndices() != FirstEVI->getIndices() ||
-        I->getAggregateOperand()->getType() !=
-            FirstEVI->getAggregateOperand()->getType())
+InstCombinerImpl::foldPHIArgExtractValueInstructionIntoPHI(PHINode &RootPN) {
+  // We cannot create a new instruction after the PHI if the terminator is an
+  // EHPad because there is no valid insertion point.
+  if (Instruction *TI = RootPN.getParent()->getTerminator())
+    if (TI->isEHPad())
       return nullptr;
+
+  // The reference def. All other defs must be compatible with this one,
+  // else we won't be able to perform the transformation.
+  Optional<ExtractValueInst *> FirstEVI;
+
+  using NumUsesSeen = unsigned;
+  constexpr unsigned NodeCountSmallSize = 64;
+
+  unsigned PHIsTotal = 0;
+  // A map of all the DAG nodes, with a count of times we've reached each one.
+  // WARNING: this must have stable iteration order!
+  SmallMapVector<Value *, NumUsesSeen, NodeCountSmallSize> Nodes;
+
+  // We'll want to perform breadth-first traversal, so use double-ended queue.
+  std::deque<PHINode *> Worklist;
+
+  // Given this PHI, potentially enqueue it for further analysis.
+  // NOTE: we don't/can't do any use-checking here!
+  //       We must first process the entire DAG!
+  auto EnqueuePHI = [&Nodes, &Worklist, &PHIsTotal](PHINode *PN) {
+    // See if we've already seen this Value or record a new encountered Value.
+    std::pair<decltype(Nodes)::iterator, bool /*Inserted*/> I =
+        Nodes.insert({PN, /*NumUsesSeen=*/0});
+    // Regardless, record that we have reached it from a new use.
+    ++I.first->second;
+    // Did we already see this PHI node?
+    if (!I.second)
+      return; // No action needed.
+    // Otherwise, actually enqueue it for analysis.
+    ++PHIsTotal;
+    Worklist.emplace_back(PN);
+  };
+
+  // Can we PHI together operands of (all the) `extractvalue`s?
+  auto DefsAreCompatible = [](ExtractValueInst *A, ExtractValueInst *B) {
+    return A->getAggregateOperand()->getType() ==
+               B->getAggregateOperand()->getType() &&
+           A->getIndices() == B->getIndices();
+  };
+
+  // Given this value, which is not a PHI and therefore must be a def,
+  // see if it's an `extractvalue` that is compatible with previous defs
+  // we've reached.
+  // NOTE: we don't/can't do any use-checking here!
+  //       We must first process the entire DAG!
+  auto RecordDef = [&FirstEVI, &Nodes,
+                    &DefsAreCompatible](Value *V) -> bool /*Success*/ {
+    auto *EVI = dyn_cast<ExtractValueInst>(V);
+    if (!EVI)
+      return false; // Not an `extractvalue` instruction. Give up.
+
+    // See if we've already seen this Value or record a new encountered Value.
+    std::pair<decltype(Nodes)::iterator, bool /*Inserted*/> I =
+        Nodes.insert({EVI, /*NumUsesSeen=*/0});
+    // Regardless, record that we have reached it from a new use.
+    ++I.first->second;
+    // Did we already see this `extractvalue` node?
+    if (!I.second)
+      return true; // All good, no further checking needed.
+
+    // Is this the first `extractvalue` we've found?
+    if (!FirstEVI) {
+      FirstEVI = EVI;
+      return true; // All good, no further checking possible.
+    }
+
+    // Otherwise, if this is the first time we're seeing this `extractvalue`,
+    // but not the first `extractvalue` we're seeing, we actually do need to
+    // check that they're compatible.
+    return DefsAreCompatible(EVI, *FirstEVI);
+  };
+
+  // Traverse this PHI recursively, in breadth-first order,
+  // and for each incoming value, either recurse into the new PHI,
+  // or record the defs, all of which must be compatible `extractvalue`'s.
+  EnqueuePHI(&RootPN);
+  while (!Worklist.empty()) {
+    PHINode *PN = Worklist.front();
+    Worklist.pop_front();
+
+    // Now, let's see what this PHI consists of, what are it's incoming values.
+    for (Value *V : PN->incoming_values()) {
+      // Enqueue each PHI node to be visited in later iteration of the loop.
+      if (auto *PN = dyn_cast<PHINode>(V)) {
+        EnqueuePHI(PN);
+        continue;
+      }
+
+      // Otherwise, if it's not a PHI node, it must be a def. Is it a good def?
+      if (!RecordDef(V))
+        return nullptr; // Bad def, abort.
+    }
   }
 
-  // Create a new PHI node to receive the values the aggregate operand has
-  // in each incoming basic block.
-  auto *NewAggregateOperand = PHINode::Create(
-      FirstEVI->getAggregateOperand()->getType(), PN.getNumIncomingValues(),
-      FirstEVI->getAggregateOperand()->getName() + ".pn");
-  // And populate the PHI with said values.
-  for (auto Incoming : zip(PN.blocks(), PN.incoming_values()))
-    NewAggregateOperand->addIncoming(
-        cast<ExtractValueInst>(std::get<1>(Incoming))->getAggregateOperand(),
-        std::get<0>(Incoming));
-  InsertNewInstBefore(NewAggregateOperand, PN);
+  // Okay! This PHI, recursively, consists only of other PHI's and
+  // intercompatible `extractvalue`s! So we can pull them through the PHI's.
 
-  // And finally, create `extractvalue` over the newly-formed PHI nodes.
-  auto *NewEVI = ExtractValueInst::Create(NewAggregateOperand,
-                                          FirstEVI->getIndices(), PN.getName());
+  // One thing though, we need to ensure that it will allow for these defs
+  // to go away, which requires that the PHI's must also all (well, other than
+  // the root one) go away.
 
-  PHIArgMergedDebugLoc(NewEVI, PN);
+  auto HasNoExtraUses = [&RootPN,
+                         &Nodes](std::pair<Value *, NumUsesSeen> Node) {
+    // Note that we shouldn't use-check the root PHI node :)
+    if (auto *PN = dyn_cast<PHINode>(Node.first))
+      if (PN == &RootPN)
+        return true;
+
+    // We've counted how many times we've reached each value, so to check that
+    // the value has no extra uses outside of our DAG we only need to check that
+    // the value use count matches the number of times we've reached it.
+    bool AllUsesSeen = Node.first->hasNUses(Node.second);
+
+    (void)Nodes;
+    assert(all_of(Node.first->users(),
+                  [&Nodes](User *U) {
+                    return isa<PHINode>(U) && Nodes.count(U);
+                  }) == AllUsesSeen &&
+           "Sanity check: checking whether or not the value has uses that are "
+           "not recorded in the Nodes map should be identical to checking the "
+           "recorded numer of times we've reached the value with use count of "
+           "the value.");
+
+    return AllUsesSeen;
+  };
+
+  // So, will all DAG nodes go away?
+  if (!all_of(Nodes, HasNoExtraUses))
+    return nullptr;
+
+  // Awesome. We are committed to a rewrite now.
+
+  SmallDenseMap<Value *, Value *, NodeCountSmallSize> ValueReMap;
+  ValueReMap.reserve(Nodes.size());
+
+  // First of all, remap each DAG node standalone, but don't create new DAG yet.
+  Type *AggTy = (*FirstEVI)->getAggregateOperand()->getType();
+  for (Value *OldV : make_first_range(Nodes)) {
+    Value *NewV;
+    if (auto *OldPN = dyn_cast<PHINode>(OldV)) {
+      NewV = PHINode::Create(AggTy, OldPN->getNumIncomingValues(),
+                             OldPN->getName() + ".agg");
+      InsertNewInstBefore(cast<Instruction>(NewV), *OldPN);
+    } else
+      NewV = cast<ExtractValueInst>(OldV)->getAggregateOperand();
+
+    // Cache that whoever was using OldV will be rewritten to use NewV.
+    auto I = ValueReMap.insert({OldV, NewV});
+    assert(I.second && "Should have inserted the new rewrite.");
+    (void)I;
+  }
+
+  auto GetRemappedValue = [&ValueReMap](Value *OldV) {
+    auto I = ValueReMap.find(OldV);
+    assert(I != ValueReMap.end() && "Should have found remapping");
+    return I->second;
+  };
+
+  // Now, we can actually recreate the DAG using the new, remapped, nodes.
+  for (Value *OldV : make_first_range(Nodes)) {
+    auto *OldPN = dyn_cast<PHINode>(OldV);
+    if (!OldPN)
+      continue; // Only have to operate on PHI's now.
+    auto *NewPN = cast<PHINode>(GetRemappedValue(OldV));
+    // Populate this new PHI node with remapped incoming values.
+    for (auto Operands : zip(OldPN->incoming_values(), OldPN->blocks()))
+      NewPN->addIncoming(GetRemappedValue(std::get<0>(Operands)),
+                         std::get<1>(Operands));
+  }
+
+  // And finally, create `extractvalue` over the newly-formed root PHI node.
+  auto *NewEVI = ExtractValueInst::Create(
+      GetRemappedValue(&RootPN), (*FirstEVI)->getIndices(), RootPN.getName());
+
+  PHIArgMergedDebugLoc(NewEVI, RootPN);
   ++NumPHIsOfExtractValues;
+  NumPHIsOfExtractValues_PHIsMax.updateMax(PHIsTotal);
+  NumPHIsOfExtractValues_NodesMax.updateMax(Nodes.size());
+  NumPHIsOfExtractValues_ExtractValueInstsMax.updateMax(Nodes.size() -
+                                                        PHIsTotal);
   return NewEVI;
 }
 
@@ -829,8 +990,6 @@ Instruction *InstCombinerImpl::foldPHIArgOpIntoPHI(PHINode &PN) {
     return foldPHIArgLoadIntoPHI(PN);
   if (isa<InsertValueInst>(FirstInst))
     return foldPHIArgInsertValueInstructionIntoPHI(PN);
-  if (isa<ExtractValueInst>(FirstInst))
-    return foldPHIArgExtractValueInstructionIntoPHI(PN);
 
   // Scan the instruction, looking for input operations that can be folded away.
   // If all input operands to the phi are the same instruction (e.g. a cast from
@@ -1309,6 +1468,10 @@ Instruction *InstCombinerImpl::visitPHINode(PHINode &PN) {
       PN.getIncomingValue(0)->hasOneUser())
     if (Instruction *Result = foldPHIArgOpIntoPHI(PN))
       return Result;
+
+  // If all non-PHI PHI operands are extractvalues, pull them through the PHI's.
+  if (Instruction *Result = foldPHIArgExtractValueInstructionIntoPHI(PN))
+    return Result;
 
   // If this is a trivial cycle in the PHI node graph, remove it.  Basically, if
   // this PHI only has a single use (a PHI), and if that PHI only has one use (a
