@@ -46,6 +46,7 @@ add_llvm_unittest(SupportTests
   JSONTest.cpp
   KnownBitsTest.cpp
   LEB128Test.cpp
+  LinearAlgebraTest.cpp
   LinearPolyBaseTest.cpp
   LineIteratorTest.cpp
   LockFileManagerTest.cpp
@@ -98,6 +99,8 @@ add_llvm_unittest(SupportTests
   raw_sha1_ostream_test.cpp
   xxhashTest.cpp
   )
+
+set_source_files_properties(LinearAlgebraTest.cpp PROPERTIES COMPILE_FLAGS -O0 -g3 -ggdb3)
 
 target_link_libraries(SupportTests PRIVATE LLVMTestingSupport)
 
