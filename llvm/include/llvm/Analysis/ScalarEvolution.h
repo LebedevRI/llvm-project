@@ -584,7 +584,7 @@ public:
   /// \p GEP The GEP. The indices contained in the GEP itself are ignored,
   /// instead we use IndexExprs.
   /// \p IndexExprs The expressions for the indices.
-  const SCEV *getGEPExpr(GEPOperator *GEP,
+  const SCEV *getGEPExpr(GEPOperator *GEP, const SCEV *BaseExpr,
                          const SmallVectorImpl<const SCEV *> &IndexExprs);
   const SCEV *getAbsExpr(const SCEV *Op, bool IsNSW);
   const SCEV *getMinMaxExpr(SCEVTypes Kind,
@@ -1219,6 +1219,14 @@ public:
   const SCEV *applyLoopGuards(const SCEV *Expr, const Loop *L);
 
 private:
+  bool InProcessOfGettingTheSCEV = false;
+
+  SmallVector<Value *, 32> Worklist;
+
+  /// Return a SCEV expression for the full generality of the specified
+  /// expression.
+  Optional<const SCEV *> getOrEnqueueSCEV(Value *V);
+
   /// A CallbackVH to arrange for ScalarEvolution to be notified whenever a
   /// Value is deleted.
   class SCEVCallbackVH final : public CallbackVH {
@@ -1610,17 +1618,17 @@ private:
 
   /// We know that there is no SCEV for the specified value.  Analyze the
   /// expression.
-  const SCEV *createSCEV(Value *V);
+  Optional<const SCEV *> createSCEV(Value *V);
 
   /// Provide the special handling we need to analyze PHI SCEVs.
-  const SCEV *createNodeForPHI(PHINode *PN);
+  Optional<const SCEV *> createNodeForPHI(PHINode *PN);
 
   /// Helper function called from createNodeForPHI.
-  const SCEV *createAddRecFromPHI(PHINode *PN);
+  Optional<const SCEV *> createAddRecFromPHI(PHINode *PN);
 
   /// A helper function for createAddRecFromPHI to handle simple cases.
-  const SCEV *createSimpleAffineAddRec(PHINode *PN, Value *BEValueV,
-                                            Value *StartValueV);
+  Optional<const SCEV *> createSimpleAffineAddRec(PHINode *PN, Value *BEValueV,
+                                                  Value *StartValueV);
 
   /// Helper function called from createNodeForPHI.
   const SCEV *createNodeFromSelectLikePHI(PHINode *PN);
@@ -1633,7 +1641,7 @@ private:
                                        Value *TrueVal, Value *FalseVal);
 
   /// Provide the special handling we need to analyze GEP SCEVs.
-  const SCEV *createNodeForGEP(GEPOperator *GEP);
+  Optional<const SCEV *> createNodeForGEP(GEPOperator *GEP);
 
   /// Implementation code for getSCEVAtScope; called at most once for each
   /// SCEV+Loop pair.
@@ -1995,13 +2003,13 @@ private:
   /// hence not sign-overflow) only if "<condition>" is true.  Since both
   /// `idx0` and `idx1` will be mapped to the same SCEV expression, (+ a b),
   /// it is not okay to annotate (+ a b) with <nsw> in the above example.
-  bool isSCEVExprNeverPoison(const Instruction *I);
+  Optional<bool> isSCEVExprNeverPoison(const Instruction *I);
 
   /// This is like \c isSCEVExprNeverPoison but it specifically works for
   /// instructions that will get mapped to SCEV add recurrences.  Return true
   /// if \p I will never generate poison under the assumption that \p I is an
   /// add recurrence on the loop \p L.
-  bool isAddRecNeverPoison(const Instruction *I, const Loop *L);
+  Optional<bool> isAddRecNeverPoison(const Instruction *I, const Loop *L);
 
   /// Similar to createAddRecFromPHI, but with the additional flexibility of
   /// suggesting runtime overflow checks in case casts are encountered.
