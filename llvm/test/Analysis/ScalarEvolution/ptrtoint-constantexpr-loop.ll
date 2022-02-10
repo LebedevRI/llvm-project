@@ -276,7 +276,7 @@ define void @zext_ptr_to_i32(i32 %arg, i32 %arg6) {
 ; PTR64_IDX64-NEXT:    %tmp = sub i32 %arg, ptrtoint ([0 x i8]* @global to i32)
 ; PTR64_IDX64-NEXT:    --> ((-1 * (trunc i64 (ptrtoint [0 x i8]* @global to i64) to i32)) + %arg) U: full-set S: full-set Exits: ((-1 * (trunc i64 (ptrtoint [0 x i8]* @global to i64) to i32)) + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR64_IDX64-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR64_IDX64-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR64_IDX64-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR64_IDX64-NEXT:  Determining loop execution counts for: @zext_ptr_to_i32
 ; PTR64_IDX64-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR64_IDX64-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -287,7 +287,7 @@ define void @zext_ptr_to_i32(i32 %arg, i32 %arg6) {
 ; PTR64_IDX32-NEXT:    %tmp = sub i32 %arg, ptrtoint ([0 x i8]* @global to i32)
 ; PTR64_IDX32-NEXT:    --> ((-1 * ptrtoint ([0 x i8]* @global to i32)) + %arg) U: full-set S: full-set Exits: ((-1 * ptrtoint ([0 x i8]* @global to i32)) + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR64_IDX32-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR64_IDX32-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR64_IDX32-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR64_IDX32-NEXT:  Determining loop execution counts for: @zext_ptr_to_i32
 ; PTR64_IDX32-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR64_IDX32-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -298,7 +298,7 @@ define void @zext_ptr_to_i32(i32 %arg, i32 %arg6) {
 ; PTR16_IDX16-NEXT:    %tmp = sub i32 %arg, ptrtoint ([0 x i8]* @global to i32)
 ; PTR16_IDX16-NEXT:    --> ((-1 * (zext i16 (ptrtoint [0 x i8]* @global to i16) to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * (zext i16 (ptrtoint [0 x i8]* @global to i16) to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR16_IDX16-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR16_IDX16-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR16_IDX16-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR16_IDX16-NEXT:  Determining loop execution counts for: @zext_ptr_to_i32
 ; PTR16_IDX16-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR16_IDX16-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -309,7 +309,7 @@ define void @zext_ptr_to_i32(i32 %arg, i32 %arg6) {
 ; PTR16_IDX32-NEXT:    %tmp = sub i32 %arg, ptrtoint ([0 x i8]* @global to i32)
 ; PTR16_IDX32-NEXT:    --> ((-1 * ptrtoint ([0 x i8]* @global to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * ptrtoint ([0 x i8]* @global to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR16_IDX32-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR16_IDX32-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR16_IDX32-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR16_IDX32-NEXT:  Determining loop execution counts for: @zext_ptr_to_i32
 ; PTR16_IDX32-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR16_IDX32-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -335,7 +335,7 @@ define void @sext_to_i32(i32 %arg, i32 %arg6) {
 ; PTR64_IDX64-NEXT:    %tmp = sub i32 %arg, sext (i16 ptrtoint ([0 x i8]* @global to i16) to i32)
 ; PTR64_IDX64-NEXT:    --> ((-1 * (sext i16 (trunc i64 (ptrtoint [0 x i8]* @global to i64) to i16) to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * (sext i16 (trunc i64 (ptrtoint [0 x i8]* @global to i64) to i16) to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR64_IDX64-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR64_IDX64-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR64_IDX64-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR64_IDX64-NEXT:  Determining loop execution counts for: @sext_to_i32
 ; PTR64_IDX64-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR64_IDX64-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -346,7 +346,7 @@ define void @sext_to_i32(i32 %arg, i32 %arg6) {
 ; PTR64_IDX32-NEXT:    %tmp = sub i32 %arg, sext (i16 ptrtoint ([0 x i8]* @global to i16) to i32)
 ; PTR64_IDX32-NEXT:    --> ((-1 * (sext i16 ptrtoint ([0 x i8]* @global to i16) to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * (sext i16 ptrtoint ([0 x i8]* @global to i16) to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR64_IDX32-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR64_IDX32-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR64_IDX32-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR64_IDX32-NEXT:  Determining loop execution counts for: @sext_to_i32
 ; PTR64_IDX32-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR64_IDX32-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -357,7 +357,7 @@ define void @sext_to_i32(i32 %arg, i32 %arg6) {
 ; PTR16_IDX16-NEXT:    %tmp = sub i32 %arg, sext (i16 ptrtoint ([0 x i8]* @global to i16) to i32)
 ; PTR16_IDX16-NEXT:    --> ((-1 * (sext i16 (ptrtoint [0 x i8]* @global to i16) to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * (sext i16 (ptrtoint [0 x i8]* @global to i16) to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR16_IDX16-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR16_IDX16-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR16_IDX16-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR16_IDX16-NEXT:  Determining loop execution counts for: @sext_to_i32
 ; PTR16_IDX16-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR16_IDX16-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.
@@ -368,7 +368,7 @@ define void @sext_to_i32(i32 %arg, i32 %arg6) {
 ; PTR16_IDX32-NEXT:    %tmp = sub i32 %arg, sext (i16 ptrtoint ([0 x i8]* @global to i16) to i32)
 ; PTR16_IDX32-NEXT:    --> ((-1 * (sext i16 ptrtoint ([0 x i8]* @global to i16) to i32))<nsw> + %arg) U: full-set S: full-set Exits: ((-1 * (sext i16 ptrtoint ([0 x i8]* @global to i16) to i32))<nsw> + %arg) LoopDispositions: { %bb7: Invariant }
 ; PTR16_IDX32-NEXT:    %tmp9 = select i1 %tmp8, i16 0, i16 1
-; PTR16_IDX32-NEXT:    --> %tmp9 U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
+; PTR16_IDX32-NEXT:    --> (1 umin (-1 + (-1 * (sext i1 %tmp8 to i16))<nsw>)<nsw>) U: [0,2) S: [0,2) Exits: <<Unknown>> LoopDispositions: { %bb7: Variant }
 ; PTR16_IDX32-NEXT:  Determining loop execution counts for: @sext_to_i32
 ; PTR16_IDX32-NEXT:  Loop %bb7: Unpredictable backedge-taken count.
 ; PTR16_IDX32-NEXT:  Loop %bb7: Unpredictable max backedge-taken count.

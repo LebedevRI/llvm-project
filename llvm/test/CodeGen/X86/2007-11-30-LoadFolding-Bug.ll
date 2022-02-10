@@ -33,6 +33,7 @@ define fastcc void @mp_sqrt(i32 %n, i32 %radix, i32* %in, i32* %out, i32* %tmp1,
 ; CHECK-NEXT:    movl $0, 0
 ; CHECK-NEXT:    movzbl %al, %ebp
 ; CHECK-NEXT:    andl $1, %ebp
+; CHECK-NEXT:    negl %ebp
 ; CHECK-NEXT:    xorpd %xmm0, %xmm0
 ; CHECK-NEXT:    xorl %eax, %eax
 ; CHECK-NEXT:    xorl %ecx, %ecx
@@ -49,7 +50,7 @@ define fastcc void @mp_sqrt(i32 %n, i32 %radix, i32* %in, i32* %out, i32* %tmp1,
 ; CHECK-NEXT:    xorpd %xmm1, %xmm1
 ; CHECK-NEXT:    subsd %xmm2, %xmm1
 ; CHECK-NEXT:    mulsd %xmm0, %xmm1
-; CHECK-NEXT:    addl $-2, %ebp
+; CHECK-NEXT:    addl $2, %ebp
 ; CHECK-NEXT:    jne .LBB0_5
 ; CHECK-NEXT:  # %bb.6: # %mp_unexp_d2mp.exit29.i
 ; CHECK-NEXT:    movl $0, 0

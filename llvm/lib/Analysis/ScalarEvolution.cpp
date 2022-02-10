@@ -4788,7 +4788,10 @@ public:
     const SCEV *Result = Expr;
     bool InvariantF = SE.isLoopInvariant(Expr, L);
 
-    if (!InvariantF) {
+    // FIXME: while SCEVUnknown was originally created for an opaque IR Value
+    //        which was an Instruction, later said Values was RAUW'd
+    //        by a constant integer. Are we missing an invalidation?
+    if (!InvariantF && isa<Instruction>(Expr->getValue())) {
       Instruction *I = cast<Instruction>(Expr->getValue());
       switch (I->getOpcode()) {
       case Instruction::Select: {
@@ -6029,23 +6032,28 @@ const SCEV *ScalarEvolution::createNodeForSelectOrPHIInstWithICmpInstCond(
 
 const SCEV *ScalarEvolution::createNodeForSelectOrPHIViaUMinSeq(
     Value *V, Value *Cond, Value *TrueVal, Value *FalseVal) {
-  // For now, only deal with i1-typed `select`s.
-  if (!V->getType()->isIntegerTy(1) || !Cond->getType()->isIntegerTy(1) ||
-      !TrueVal->getType()->isIntegerTy(1) ||
-      !FalseVal->getType()->isIntegerTy(1))
+  assert(V->getType() == TrueVal->getType() &&
+         TrueVal->getType() == FalseVal->getType() &&
+         "Expected the type of V and of the operands to match.");
+
+  // For now, only deal with integer-typed `select`s.
+  if (!V->getType()->isIntegerTy() || !Cond->getType()->isIntegerTy(1))
     return getUnknown(V);
 
-  // i1 cond ? i1 x : i1 C  -->  C + (i1  cond ? (i1 x - i1 C) : i1 0)
-  //                        -->  C + (umin_seq  cond, x - C)
+  // i1 cond ? iN x : iN C  -->  C + (i1  cond ? (iN x - iN C) : iN 0)
+  //                        -->  C + (umin_seq  (sext   cond), x - C)
   //
-  // i1 cond ? i1 C : i1 x  -->  C + (i1  cond ? i1 0 : (i1 x - i1 C))
-  //                        -->  C + (i1 ~cond ? (i1 x - i1 C) : i1 0)
-  //                        -->  C + (umin_seq ~cond, x - C)
+  // i1 cond ? iN C : iN x  -->  C + (i1  cond ? iN 0 : (iN x - iN C))
+  //                        -->  C + (i1 ~cond ? (iN x - iN C) : iN 0)
+  //                        -->  C + (umin_seq  (sext ~cond), x - C)
+  //                        -->  C + (umin_seq ~(sext  cond), x - C)
   if (isa<ConstantInt>(TrueVal) || isa<ConstantInt>(FalseVal)) {
     const SCEV *CondExpr = getSCEV(Cond);
     const SCEV *TrueExpr = getSCEV(TrueVal);
     const SCEV *FalseExpr = getSCEV(FalseVal);
     const SCEV *X, *C;
+    if (getTypeSizeInBits(V->getType()) > getTypeSizeInBits(Cond->getType()))
+      CondExpr = getSignExtendExpr(CondExpr, V->getType());
     if (isa<ConstantInt>(TrueVal)) {
       CondExpr = getNotSCEV(CondExpr);
       X = FalseExpr;
@@ -6764,7 +6772,7 @@ ConstantRange ScalarEvolution::getRangeViaFactoring(const SCEV *Start,
   // == RangeOf({A,+,P}) union RangeOf({B,+,Q})
 
   struct SelectPattern {
-    Value *Condition = nullptr;
+    const SCEV *Condition = nullptr;
     APInt TrueValue;
     APInt FalseValue;
 
@@ -6793,19 +6801,39 @@ ConstantRange ScalarEvolution::getRangeViaFactoring(const SCEV *Start,
         S = SCast->getOperand();
       }
 
-      using namespace llvm::PatternMatch;
-
-      auto *SU = dyn_cast<SCEVUnknown>(S);
-      const APInt *TrueVal, *FalseVal;
-      if (!SU ||
-          !match(SU->getValue(), m_Select(m_Value(Condition), m_APInt(TrueVal),
-                                          m_APInt(FalseVal)))) {
+      // umin C2,  (sext  cond)  -->  i1 cond ? iN C2 : iN 0
+      // umin C2, ~(sext  cond)  -->  i1 cond ? iN 0  : iN C2
+      // umin C2,  (sext ~cond)  -->  i1 cond ? iN 0  : iN C2
+      // umin C2, ~(sext ~cond)  -->  i1 cond ? iN C2 : iN 0
+      if (![&]() {
+            const auto *UMin = dyn_cast<SCEVUMinExpr>(S);
+            if (!UMin || UMin->getNumOperands() != 2 ||
+                !isa<SCEVConstant>(UMin->getOperand(0)))
+              return false;
+            TrueValue = cast<SCEVConstant>(UMin->getOperand(0))->getAPInt();
+            FalseValue = APInt(TrueValue.getBitWidth(), 0);
+            Condition = UMin->getOperand(1);
+            bool Invert = false;
+            while (true) {
+              const auto *const OrigCond = Condition;
+              if (auto *SExtCond = dyn_cast<SCEVSignExtendExpr>(Condition))
+                Condition = SExtCond->getOperand(0);
+              if (auto *NotCond = MatchNotExpr(Condition)) {
+                Invert = !Invert;
+                Condition = NotCond;
+              }
+              if (OrigCond == Condition)
+                break;
+            }
+            if (!Condition->getType()->isIntegerTy(1))
+              return false;
+            if (Invert)
+              std::swap(TrueValue, FalseValue);
+            return true;
+          }()) {
         Condition = nullptr;
         return;
       }
-
-      TrueValue = *TrueVal;
-      FalseValue = *FalseVal;
 
       // Re-apply the cast we peeled off earlier
       if (CastOp.hasValue())

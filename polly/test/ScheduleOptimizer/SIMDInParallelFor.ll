@@ -12,17 +12,17 @@ target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 @b = external dso_local unnamed_addr global [1984 x [1984 x double]], align 16
 @c = external dso_local unnamed_addr global [1984 x [1984 x double]], align 16
 
-define dso_local void @main() local_unnamed_addr {
+define dso_local void @main(i1 %c0, i1 %c1, i1 %c2, i32 %v0, i32 %v1, i32 %v2) local_unnamed_addr {
 entry:
-  %cond = select i1 undef, i32 undef, i32 1984
+  %cond = select i1 %c0, i32 %v0, i32 1984
   %tmp = zext i32 %cond to i64
-  %cond63 = select i1 undef, i32 undef, i32 1984
+  %cond63 = select i1 %c1, i32 %v1, i32 1984
   %tmp1 = zext i32 %cond63 to i64
   br label %for.cond51.preheader
 
 for.cond51.preheader:
   %indvars.iv213 = phi i64 [ 0, %entry ], [ %indvars.iv.next214, %for.inc98 ]
-  %cond73 = select i1 undef, i32 undef, i32 1984
+  %cond73 = select i1 %c2, i32 %v2, i32 1984
   %tmp2 = zext i32 %cond73 to i64
   br label %for.cond56.preheader
 

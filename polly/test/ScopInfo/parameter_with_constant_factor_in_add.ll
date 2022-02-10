@@ -10,6 +10,8 @@
 ; ModuleID = 'bugpoint-reduced-simplified.bc'
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 
+@constant = dso_local global i8 0, align 4
+
 ; Function Attrs: nounwind uwtable
 define void @BPredPartitionCost(i32* %A) #0 {
 entry:
@@ -17,7 +19,7 @@ entry:
   br label %for.cond261.preheader.lr.ph
 
 for.cond261.preheader.lr.ph:                      ; preds = %entry
-  %smax188 = select i1 undef, i32 undef, i32 -9
+  %smax188 = select i1 undef, i32 undef, i32 ptrtoint (i8* @constant to i32)
   %0 = sub i32 0, %smax188
   %1 = sext i32 %0 to i64
   %2 = add i64 %1, -1

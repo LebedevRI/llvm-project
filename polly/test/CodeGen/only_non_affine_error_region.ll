@@ -5,7 +5,7 @@
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 
 ; Function Attrs: nounwind uwtable
-define void @f(i32 %argc, i32* %A) #0 {
+define void @f(i32 %argc, i32* %A, i32 %v) #0 {
 entry:
   br i1 undef, label %for.end, label %for.body
 
@@ -13,7 +13,7 @@ for.body:                                         ; preds = %entry
   br label %for.end
 
 for.end:                                          ; preds = %for.body, %entry
-  %i.2 = phi i32 [ 1, %entry ], [ 1, %for.body ]
+  %i.2 = phi i32 [ %v, %entry ], [ %v, %for.body ]
   %cmp170 = icmp eq i32 %i.2, %argc
   br i1 %cmp170, label %if.then172, label %if.end174
 

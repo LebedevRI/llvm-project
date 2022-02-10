@@ -2,7 +2,7 @@
 
 declare void @bar()
 
-define void @foo(float* %A, i64 %p) {
+define void @foo(float* %A, i64 %p, i64 %iv, i64 %iv2) {
 start:
    br label %next
 
@@ -18,7 +18,7 @@ ok:
    br label %merge
 
 merge:
-   %phi = phi i64 [0, %error], [1, %ok]
+   %phi = phi i64 [%iv, %error], [%iv2, %ok]
    store float 42.0, float* %A
    %cmp = icmp eq i64 %phi, %p
    br i1 %cmp, label %loop, label %exit
@@ -37,25 +37,25 @@ exit:
 ; CHECK:      Statements {
 ; CHECK-NEXT: 	Stmt_ok
 ; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_ok[] : p > 0 };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_ok[] : p > 0 };
 ; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_ok[] -> [0, 0] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_ok[] -> [0, 0] };
 ; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 1]
-; CHECK-NEXT:             [p] -> { Stmt_ok[] -> MemRef_phi__phi[] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_ok[] -> MemRef_phi__phi[] };
 ; CHECK-NEXT: 	Stmt_merge
 ; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_merge[] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_merge[] };
 ; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> [1, 0] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_merge[] -> [1, 0] };
 ; CHECK-NEXT:         ReadAccess :=	[Reduction Type: NONE] [Scalar: 1]
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> MemRef_phi__phi[] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_merge[] -> MemRef_phi__phi[] };
 ; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 0]
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> MemRef_A[0] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_merge[] -> MemRef_A[0] };
 ; CHECK-NEXT: 	Stmt_loop
 ; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] : p = 1 and 0 <= i0 <= 1025 };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_loop[i0] : iv2 = p and 0 <= i0 <= 1025 };
 ; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] -> [2, i0] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_loop[i0] -> [2, i0] };
 ; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 0]
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] -> MemRef_A[0] };
+; CHECK-NEXT:             [p, iv2] -> { Stmt_loop[i0] -> MemRef_A[0] };
 ; CHECK-NEXT: }

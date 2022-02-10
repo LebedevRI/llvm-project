@@ -278,17 +278,15 @@ define void @guard_pessimizes_analysis_step2(i1 %c, i32 %N) {
 ; CHECK-NEXT:    %N.ext = zext i32 %N to i64
 ; CHECK-NEXT:    --> (zext i32 %N to i64) U: [0,4294967296) S: [0,4294967296)
 ; CHECK-NEXT:    %init = phi i64 [ 2, %entry ], [ 4, %bb1 ]
-; CHECK-NEXT:    --> %init U: [2,5) S: [2,5)
+; CHECK-NEXT:    --> (4 + (-2 umin (-1 + (-1 * (sext i1 %c to i64))<nsw>)<nsw>)) U: [4,3) S: [4,3)
 ; CHECK-NEXT:    %iv = phi i64 [ %iv.next, %loop ], [ %init, %loop.ph ]
-; CHECK-NEXT:    --> {%init,+,2}<%loop> U: [2,17) S: [2,17) Exits: ((2 * ((14 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(4 + (-2 umin (-1 + (-1 * (sext i1 %c to i64))<nsw>)<nsw>)),+,2}<%loop> U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.next = add i64 %iv, 2
-; CHECK-NEXT:    --> {(2 + %init)<nuw><nsw>,+,2}<%loop> U: [4,19) S: [4,19) Exits: (2 + (2 * ((14 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(6 + (-2 umin (-1 + (-1 * (sext i1 %c to i64))<nsw>)<nsw>)),+,2}<%loop> U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:  Determining loop execution counts for: @guard_pessimizes_analysis_step2
-; CHECK-NEXT:  Loop %loop: backedge-taken count is ((14 + (-1 * %init)<nsw>)<nsw> /u 2)
-; CHECK-NEXT:  Loop %loop: max backedge-taken count is 6
-; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is ((14 + (-1 * %init)<nsw>)<nsw> /u 2)
-; CHECK-NEXT:   Predicates:
-; CHECK:       Loop %loop: Trip multiple is 1
+; CHECK-NEXT:  Loop %loop: Unpredictable backedge-taken count.
+; CHECK-NEXT:  Loop %loop: Unpredictable max backedge-taken count.
+; CHECK-NEXT:  Loop %loop: Unpredictable predicated backedge-taken count.
 ;
 entry:
   %N.ext = zext i32 %N to i64
