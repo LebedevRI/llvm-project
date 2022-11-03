@@ -943,6 +943,11 @@ Sanitizers
   returning uninitialized variables from functions is more aggressively
   reported. ``-fno-sanitize-memory-param-retval`` restores the previous
   behavior.
+- A new Undefined Behavior Sanitizer check has been implemented:
+  ``-fsanitize=exception-escape`` (part of ``-fsanitize=undefined``),
+  which catches cases of C++ exceptions trying to unwind
+  out of non-unwindable functions.
+
 
 Core Analysis Improvements
 ==========================

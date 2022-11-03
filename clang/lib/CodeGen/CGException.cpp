@@ -440,6 +440,7 @@ llvm::Value *CodeGenFunction::getSelectorFromSlot() {
 
 void CodeGenFunction::EmitCXXThrowExpr(const CXXThrowExpr *E,
                                        bool KeepInsertionPoint) {
+  MaybeRecordCurrLocForExceptionEscapeUBSan(E->getBeginLoc());
   if (const Expr *SubExpr = E->getSubExpr()) {
     QualType ThrowType = SubExpr->getType();
     if (ThrowType->isObjCObjectPointerType()) {
@@ -459,80 +460,12 @@ void CodeGenFunction::EmitCXXThrowExpr(const CXXThrowExpr *E,
     EmitBlock(createBasicBlock("throw.cont"));
 }
 
-void CodeGenFunction::EmitStartEHSpec(const Decl *D) {
-  if (!CGM.getLangOpts().CXXExceptions)
-    return;
-
-  const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(D);
-  if (!FD) {
-    // Check if CapturedDecl is nothrow and create terminate scope for it.
-    if (const CapturedDecl* CD = dyn_cast_or_null<CapturedDecl>(D)) {
-      if (CD->isNothrow())
-        EHStack.pushTerminate();
-    }
-    return;
-  }
-  const FunctionProtoType *Proto = FD->getType()->getAs<FunctionProtoType>();
-  if (!Proto)
-    return;
-
-  ExceptionSpecificationType EST = Proto->getExceptionSpecType();
-  // In C++17 and later, 'throw()' aka EST_DynamicNone is treated the same way
-  // as noexcept. In earlier standards, it is handled in this block, along with
-  // 'throw(X...)'.
-  if (EST == EST_Dynamic ||
-      (EST == EST_DynamicNone && !getLangOpts().CPlusPlus17)) {
-    // TODO: Revisit exception specifications for the MS ABI.  There is a way to
-    // encode these in an object file but MSVC doesn't do anything with it.
-    if (getTarget().getCXXABI().isMicrosoft())
-      return;
-    // In Wasm EH we currently treat 'throw()' in the same way as 'noexcept'. In
-    // case of throw with types, we ignore it and print a warning for now.
-    // TODO Correctly handle exception specification in Wasm EH
-    if (CGM.getLangOpts().hasWasmExceptions()) {
-      if (EST == EST_DynamicNone)
-        EHStack.pushTerminate();
-      else
-        CGM.getDiags().Report(D->getLocation(),
-                              diag::warn_wasm_dynamic_exception_spec_ignored)
-            << FD->getExceptionSpecSourceRange();
-      return;
-    }
-    // Currently Emscripten EH only handles 'throw()' but not 'throw' with
-    // types. 'throw()' handling will be done in JS glue code so we don't need
-    // to do anything in that case. Just print a warning message in case of
-    // throw with types.
-    // TODO Correctly handle exception specification in Emscripten EH
-    if (getTarget().getCXXABI() == TargetCXXABI::WebAssembly &&
-        CGM.getLangOpts().getExceptionHandling() ==
-            LangOptions::ExceptionHandlingKind::None &&
-        EST == EST_Dynamic)
-      CGM.getDiags().Report(D->getLocation(),
-                            diag::warn_wasm_dynamic_exception_spec_ignored)
-          << FD->getExceptionSpecSourceRange();
-
-    unsigned NumExceptions = Proto->getNumExceptions();
-    EHFilterScope *Filter = EHStack.pushFilter(NumExceptions);
-
-    for (unsigned I = 0; I != NumExceptions; ++I) {
-      QualType Ty = Proto->getExceptionType(I);
-      QualType ExceptType = Ty.getNonReferenceType().getUnqualifiedType();
-      llvm::Value *EHType = CGM.GetAddrOfRTTIDescriptor(ExceptType,
-                                                        /*ForEH=*/true);
-      Filter->setFilter(I, EHType);
-    }
-  } else if (Proto->canThrow() == CT_Cannot) {
-    // noexcept functions are simple terminate scopes.
-    if (!getLangOpts().EHAsynch) // -EHa: HW exception still can occur
-      EHStack.pushTerminate();
-  }
-}
-
 /// Emit the dispatch block for a filter scope if necessary.
 static void emitFilterDispatchBlock(CodeGenFunction &CGF,
                                     EHFilterScope &filterScope) {
   llvm::BasicBlock *dispatchBlock = filterScope.getCachedEHDispatchBlock();
-  if (!dispatchBlock) return;
+  if (!dispatchBlock)
+    return;
   if (dispatchBlock->use_empty()) {
     delete dispatchBlock;
     return;
@@ -561,51 +494,128 @@ static void emitFilterDispatchBlock(CodeGenFunction &CGF,
   // according to the last landing pad the exception was thrown
   // into.  Seriously.
   llvm::Value *exn = CGF.getExceptionFromSlot();
-  CGF.EmitRuntimeCall(getUnexpectedFn(CGF.CGM), exn)
-    ->setDoesNotReturn();
+  CGF.EmitRuntimeCall(getUnexpectedFn(CGF.CGM), exn)->setDoesNotReturn();
   CGF.Builder.CreateUnreachable();
+}
+
+bool CodeGenFunction::ExceptionEscapeIsProgramTermination(const Decl *D,
+                                                          bool IsStart) {
+  assert(CGM.getLangOpts().CXXExceptions && "Only for CXX-Exceptions mode.");
+
+  const FunctionDecl *FD = dyn_cast_or_null<FunctionDecl>(D);
+  if (!FD) {
+    // Check if CapturedDecl is nothrow and create terminate scope for it.
+    if (const CapturedDecl *CD = dyn_cast_or_null<CapturedDecl>(D)) {
+      if (CD->isNothrow())
+        return true;
+    }
+    return false;
+  }
+
+  // As an extension, we define that functions annotated with pure/const attrs
+  // exibit UB on throw, so we don't need to terminate the program.
+  if (FD->hasAttr<PureAttr>() || FD->hasAttr<ConstAttr>())
+    return false;
+
+  const FunctionProtoType *Proto = FD->getType()->getAs<FunctionProtoType>();
+  if (!Proto)
+    return false;
+
+  ExceptionSpecificationType EST = Proto->getExceptionSpecType();
+  // In C++17 and later, 'throw()' aka EST_DynamicNone is treated the same way
+  // as noexcept. In earlier standards, it is handled in this block, along with
+  // 'throw(X...)'.
+  if (EST == EST_Dynamic ||
+      (EST == EST_DynamicNone && !getLangOpts().CPlusPlus17)) {
+    // TODO: Revisit exception specifications for the MS ABI.  There is a way to
+    // encode these in an object file but MSVC doesn't do anything with it.
+    if (getTarget().getCXXABI().isMicrosoft())
+      return false;
+    // In Wasm EH we currently treat 'throw()' in the same way as 'noexcept'. In
+    // case of throw with types, we ignore it and print a warning for now.
+    // TODO Correctly handle exception specification in Wasm EH
+    if (CGM.getLangOpts().hasWasmExceptions()) {
+      if (EST == EST_DynamicNone)
+        return true;
+      else if (IsStart)
+        CGM.getDiags().Report(D->getLocation(),
+                              diag::warn_wasm_dynamic_exception_spec_ignored)
+            << FD->getExceptionSpecSourceRange();
+      return false;
+    }
+    // Currently Emscripten EH only handles 'throw()' but not 'throw' with
+    // types. 'throw()' handling will be done in JS glue code so we don't need
+    // to do anything in that case. Just print a warning message in case of
+    // throw with types.
+    // TODO Correctly handle exception specification in Emscripten EH
+    if (getTarget().getCXXABI() == TargetCXXABI::WebAssembly &&
+        CGM.getLangOpts().getExceptionHandling() ==
+            LangOptions::ExceptionHandlingKind::None &&
+        EST == EST_Dynamic && IsStart)
+      CGM.getDiags().Report(D->getLocation(),
+                            diag::warn_wasm_dynamic_exception_spec_ignored)
+          << FD->getExceptionSpecSourceRange();
+
+    if (IsStart) {
+      unsigned NumExceptions = Proto->getNumExceptions();
+      EHFilterScope *Filter = EHStack.pushFilter(NumExceptions);
+
+      for (unsigned I = 0; I != NumExceptions; ++I) {
+        QualType Ty = Proto->getExceptionType(I);
+        QualType ExceptType = Ty.getNonReferenceType().getUnqualifiedType();
+        llvm::Value *EHType = CGM.GetAddrOfRTTIDescriptor(ExceptType,
+                                                          /*ForEH=*/true);
+        Filter->setFilter(I, EHType);
+      }
+    } else {
+      EHFilterScope &filterScope = cast<EHFilterScope>(*EHStack.begin());
+      emitFilterDispatchBlock(*this, filterScope);
+      EHStack.popFilter();
+    }
+  } else if (Proto->canThrow() == CT_Cannot) {
+    // noexcept functions are simple terminate scopes.
+    if (!getLangOpts().EHAsynch) // -EHa: HW exception still can occur
+      return true;
+  }
+  return false;
+}
+
+void CodeGenFunction::EmitStartEHSpec(const Decl *D) {
+  if (!CGM.getLangOpts().CXXExceptions)
+    return;
+
+  // If the LLVM IR function is marked as non-unwinding,
+  // then exception escape is UB. UBSan might be interested in this.
+  if (CurFn->hasFnAttribute(llvm::Attribute::NoUnwind))
+    EHStack.pushUB(/*isSanitized=*/SanOpts.has(SanitizerKind::ExceptionEscape));
+
+  // Does the EH Specification for the current function mandate that the
+  // exception escaping out of the current function is required to cause
+  // program termination?
+  if (ExceptionEscapeIsProgramTermination(D, /*IsStart=*/true)) {
+    assert(CurFn->hasFnAttribute(llvm::Attribute::NoUnwind) &&
+           "Forgot to manifest nounwind function attribute in LLVM IR.");
+    EHStack.pushTerminate();
+  }
 }
 
 void CodeGenFunction::EmitEndEHSpec(const Decl *D) {
   if (!CGM.getLangOpts().CXXExceptions)
     return;
 
-  const FunctionDecl* FD = dyn_cast_or_null<FunctionDecl>(D);
-  if (!FD) {
-    // Check if CapturedDecl is nothrow and pop terminate scope for it.
-    if (const CapturedDecl* CD = dyn_cast_or_null<CapturedDecl>(D)) {
-      if (CD->isNothrow() && !EHStack.empty())
-        EHStack.popTerminate();
-    }
-    return;
-  }
-  const FunctionProtoType *Proto = FD->getType()->getAs<FunctionProtoType>();
-  if (!Proto)
-    return;
-
-  ExceptionSpecificationType EST = Proto->getExceptionSpecType();
-  if (EST == EST_Dynamic ||
-      (EST == EST_DynamicNone && !getLangOpts().CPlusPlus17)) {
-    // TODO: Revisit exception specifications for the MS ABI.  There is a way to
-    // encode these in an object file but MSVC doesn't do anything with it.
-    if (getTarget().getCXXABI().isMicrosoft())
-      return;
-    // In wasm we currently treat 'throw()' in the same way as 'noexcept'. In
-    // case of throw with types, we ignore it and print a warning for now.
-    // TODO Correctly handle exception specification in wasm
-    if (CGM.getLangOpts().hasWasmExceptions()) {
-      if (EST == EST_DynamicNone)
-        EHStack.popTerminate();
-      return;
-    }
-    EHFilterScope &filterScope = cast<EHFilterScope>(*EHStack.begin());
-    emitFilterDispatchBlock(*this, filterScope);
-    EHStack.popFilter();
-  } else if (Proto->canThrow() == CT_Cannot &&
-              /* possible empty when under async exceptions */
-             !EHStack.empty()) {
+  // Does the EH Specification for the current function mandate that the
+  // exception escaping out of the current function is required to cause
+  // program termination?
+  if (ExceptionEscapeIsProgramTermination(D, /*IsStart=*/false)) {
+    assert(CurFn->hasFnAttribute(llvm::Attribute::NoUnwind) &&
+           "Forgot to manifest nounwind function attribute in LLVM IR.");
     EHStack.popTerminate();
   }
+
+  // If the LLVM IR function is marked as non-unwinding,
+  // then exception escape is UB. UBSan might be interested in this.
+  if (CurFn->hasFnAttribute(llvm::Attribute::NoUnwind))
+    EHStack.popUB();
 }
 
 void CodeGenFunction::EmitCXXTryStmt(const CXXTryStmt &S) {
@@ -692,6 +702,13 @@ CodeGenFunction::getEHDispatchBlock(EHScopeStack::stable_iterator si) {
     case EHScope::Terminate:
       dispatchBlock = getTerminateHandler();
       break;
+
+    case EHScope::UB:
+      if (!cast<EHUBScope>(scope).getIsSanitized())
+        dispatchBlock = getUnreachableBlock();
+      else
+        dispatchBlock = getExceptionEscapeUBHandler();
+      break;
     }
     scope.setCachedEHDispatchBlock(dispatchBlock);
   }
@@ -733,6 +750,11 @@ CodeGenFunction::getFuncletEHDispatchBlock(EHScopeStack::stable_iterator SI) {
   case EHScope::Terminate:
     DispatchBlock->setName("terminate");
     break;
+
+  case EHScope::UB:
+    assert(cast<EHUBScope>(EHS).getIsSanitized() && "Only when sanitizing");
+    DispatchBlock->setName("ub");
+    break;
   }
   EHS.setCachedEHDispatchBlock(DispatchBlock);
   return DispatchBlock;
@@ -748,6 +770,7 @@ static bool isNonEHScope(const EHScope &S) {
   case EHScope::Filter:
   case EHScope::Catch:
   case EHScope::Terminate:
+  case EHScope::UB:
     return false;
   }
 
@@ -813,6 +836,10 @@ llvm::BasicBlock *CodeGenFunction::EmitLandingPad() {
   switch (innermostEHScope.getKind()) {
   case EHScope::Terminate:
     return getTerminateLandingPad();
+  case EHScope::UB:
+    assert(cast<EHUBScope>(innermostEHScope).getIsSanitized() &&
+           "Only when sanitizing");
+    return getExceptionEscapeUBLandingPad();
 
   case EHScope::Catch:
   case EHScope::Cleanup:
@@ -858,7 +885,8 @@ llvm::BasicBlock *CodeGenFunction::EmitLandingPad() {
       continue;
 
     case EHScope::Filter: {
-      assert(I.next() == EHStack.end() && "EH filter is not end of EH stack");
+      assert((I.next() == EHStack.end() || isa<EHUBScope>(*I.next())) &&
+             "EH filter is not end of EH stack");
       assert(!hasCatchAll && "EH filter reached after catch-all");
 
       // Filter scopes get added to the landingpad in weird ways.
@@ -872,7 +900,8 @@ llvm::BasicBlock *CodeGenFunction::EmitLandingPad() {
     }
 
     case EHScope::Terminate:
-      // Terminate scopes are basically catch-alls.
+    case EHScope::UB:
+      // Terminate/UB scopes are basically catch-alls.
       assert(!hasCatchAll);
       hasCatchAll = true;
       goto done;
@@ -943,7 +972,7 @@ llvm::BasicBlock *CodeGenFunction::EmitLandingPad() {
   Builder.restoreIP(savedIP);
 
   return lpad;
-}
+ }
 
 static void emitCatchPadBlock(CodeGenFunction &CGF, EHCatchScope &CatchScope) {
   llvm::BasicBlock *DispatchBlock = CatchScope.getCachedEHDispatchBlock();
@@ -1596,6 +1625,120 @@ llvm::BasicBlock *CodeGenFunction::getTerminateFunclet() {
   Builder.restoreIP(SavedIP);
 
   return TerminateFunclet;
+}
+
+llvm::BasicBlock *CodeGenFunction::getExceptionEscapeUBSanitizerBB() {
+  assert(SanOpts.has(SanitizerKind::ExceptionEscape) &&
+         "Should only get here if the Exception Escape Sanitizer is enabled.");
+
+  if (ExceptionEscapeUBSanitizerBB)
+    return ExceptionEscapeUBSanitizerBB;
+
+  SanitizerScope SanScope(this);
+
+  CGBuilderTy::InsertPoint SavedIP = Builder.saveAndClearIP();
+
+  // This will get inserted at the end of the function.
+  ExceptionEscapeUBSanitizerBB =
+      createBasicBlock("exception-escape.sanitization");
+  Builder.SetInsertPoint(ExceptionEscapeUBSanitizerBB);
+
+  llvm::Value *Exn = getExceptionFromSlot();
+
+  llvm::Type *SourceLocationTy =
+      EmitCheckSourceLocation(SourceLocation())->getType();
+  ExceptionEscapeUBLastInvokeSrcLoc =
+      CreateTempAlloca(SourceLocationTy, "invoke.srcloc");
+  // The callers are responsible with populating this with relevant information.
+
+  llvm::Value *InvokeSrcLoc = Builder.CreateLoad(
+      Address(ExceptionEscapeUBLastInvokeSrcLoc, SourceLocationTy,
+              CharUnits::fromQuantity(
+                  ExceptionEscapeUBLastInvokeSrcLoc->getAlign().value())),
+      "curr.invoke.srcloc");
+
+  llvm::Value *DynamicData[] = {InvokeSrcLoc, Exn};
+  // FIXME: can we do anything interesting with `Exn`?
+  EmitCheck({std::make_pair(llvm::ConstantInt::getFalse(getLLVMContext()),
+                            SanitizerKind::ExceptionEscape)},
+            SanitizerHandler::ExceptionEscape, /*StaticData=*/{}, DynamicData);
+
+  Builder.CreateUnreachable();
+
+  // Restore the saved insertion state.
+  Builder.restoreIP(SavedIP);
+
+  return ExceptionEscapeUBSanitizerBB;
+}
+
+llvm::BasicBlock *CodeGenFunction::getExceptionEscapeUBLandingPad() {
+  assert(SanOpts.has(SanitizerKind::ExceptionEscape) &&
+         "Should only get here if the Exception Escape Sanitizer is enabled.");
+
+  if (ExceptionEscapeUBLandingPad)
+    return ExceptionEscapeUBLandingPad;
+
+  llvm::BasicBlock *SanBB = getExceptionEscapeUBSanitizerBB();
+
+  SanitizerScope SanScope(this);
+
+  CGBuilderTy::InsertPoint SavedIP = Builder.saveAndClearIP();
+
+  // This will get inserted at the end of the function.
+  ExceptionEscapeUBLandingPad = createBasicBlock("exception-escape.lpad");
+  Builder.SetInsertPoint(ExceptionEscapeUBLandingPad);
+
+  // Tell the backend that this is a landing pad.
+  const EHPersonality &Personality = EHPersonality::get(*this);
+
+  if (!CurFn->hasPersonalityFn())
+    CurFn->setPersonalityFn(getOpaquePersonalityFn(CGM, Personality));
+
+  llvm::LandingPadInst *LPadInst =
+      Builder.CreateLandingPad(llvm::StructType::get(Int8PtrTy, Int32Ty), 0);
+  LPadInst->addClause(getCatchAllValue(*this));
+
+  llvm::Value *Exn = nullptr;
+  if (getLangOpts().CPlusPlus)
+    Exn = Builder.CreateExtractValue(LPadInst, 0);
+  Builder.CreateStore(Exn, getExceptionSlot());
+
+  // And just fall through into the actual sanitizer block.
+  Builder.CreateBr(SanBB);
+
+  // Restore the saved insertion state.
+  Builder.restoreIP(SavedIP);
+
+  return ExceptionEscapeUBLandingPad;
+}
+
+llvm::BasicBlock *CodeGenFunction::getExceptionEscapeUBHandler() {
+  assert(SanOpts.has(SanitizerKind::ExceptionEscape) &&
+         "Should only get here if the Exception Escape Sanitizer is enabled.");
+
+  if (ExceptionEscapeUBHandler)
+    return ExceptionEscapeUBHandler;
+
+  llvm::BasicBlock *SanBB = getExceptionEscapeUBSanitizerBB();
+
+  // Set up the UB handler.  This block is inserted at the very
+  // end of the function by FinishFunction.
+  ExceptionEscapeUBHandler = createBasicBlock("exception-escape.handler");
+  CGBuilderTy::InsertPoint SavedIP = Builder.saveAndClearIP();
+  Builder.SetInsertPoint(ExceptionEscapeUBHandler);
+
+  // For C++, the exception is already in the slot, otherwise we need to store
+  // null.
+  if (!getLangOpts().CPlusPlus)
+    Builder.CreateStore(/*Exn=*/nullptr, getExceptionSlot());
+
+  // And just fall through into the actual sanitizer block.
+  Builder.CreateBr(SanBB);
+
+  // Restore the saved insertion state.
+  Builder.restoreIP(SavedIP);
+
+  return ExceptionEscapeUBHandler;
 }
 
 llvm::BasicBlock *CodeGenFunction::getEHResumeBlock(bool isCleanup) {

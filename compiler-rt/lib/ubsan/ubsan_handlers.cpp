@@ -433,6 +433,17 @@ void __ubsan::__ubsan_handle_missing_return(UnreachableData *Data) {
   Die();
 }
 
+void __ubsan::__ubsan_handle_exception_escape(ExceptionEscapeData *Data,
+                                              ValueHandle Exn) {
+  GET_REPORT_OPTIONS(true);
+  ErrorType ET = ErrorType::ExceptionEscape;
+  ScopedReport R(Opts, Data->Loc, ET);
+  Diag(Data->Loc, DL_Error, ET,
+       "exception escapes out of function that should not throw exception");
+  // FIXME: can we do anything useful with the \p Exn?
+  Die();
+}
+
 static void handleVLABoundNotPositive(VLABoundData *Data, ValueHandle Bound,
                                       ReportOptions Opts) {
   SourceLocation Loc = Data->Loc.acquire();

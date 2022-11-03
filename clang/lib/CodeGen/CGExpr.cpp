@@ -3186,7 +3186,8 @@ static CheckRecoverableKind getRecoverableKind(SanitizerMask Kind) {
   assert(Kind.countPopulation() == 1);
   if (Kind == SanitizerKind::Function || Kind == SanitizerKind::Vptr)
     return CheckRecoverableKind::AlwaysRecoverable;
-  else if (Kind == SanitizerKind::Return || Kind == SanitizerKind::Unreachable)
+  else if (Kind == SanitizerKind::ExceptionEscape ||
+           Kind == SanitizerKind::Return || Kind == SanitizerKind::Unreachable)
     return CheckRecoverableKind::Unrecoverable;
   else
     return CheckRecoverableKind::Recoverable;

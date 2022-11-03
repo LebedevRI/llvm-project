@@ -5411,7 +5411,14 @@ RValue CodeGenFunction::EmitCall(const CGFunctionInfo &CallInfo,
   llvm::CallBase *CI;
   if (!InvokeDest) {
     CI = Builder.CreateCall(IRFuncTy, CalleePtr, IRCallArgs, BundleList);
+    if (EHStack.wouldUnwindBeUB())
+      Attrs = Attrs.addFnAttribute(getLLVMContext(),
+                                   llvm::Attribute::AttrKind::NoUnwind);
   } else {
+    assert((!EHStack.wouldUnwindBeUB() ||
+            SanOpts.has(SanitizerKind::ExceptionEscape)) &&
+           "If unwind would be UB, we should be here only if sanitizing");
+    MaybeRecordCurrLocForExceptionEscapeUBSan(Loc);
     llvm::BasicBlock *Cont = createBasicBlock("invoke.cont");
     CI = Builder.CreateInvoke(IRFuncTy, CalleePtr, Cont, InvokeDest, IRCallArgs,
                               BundleList);
@@ -5667,6 +5674,19 @@ RValue CodeGenFunction::EmitCall(const CGFunctionInfo &CallInfo,
                 RetTy);
 
   return Ret;
+}
+
+void CodeGenFunction::MaybeRecordCurrLocForExceptionEscapeUBSan(
+    SourceLocation Loc) {
+  if (!SanOpts.has(SanitizerKind::ExceptionEscape) ||
+      !ExceptionEscapeUBLastInvokeSrcLoc)
+    return;
+  llvm::Constant *CheckSourceLocation = EmitCheckSourceLocation(Loc);
+  Builder.CreateStore(
+      CheckSourceLocation,
+      Address(ExceptionEscapeUBLastInvokeSrcLoc, CheckSourceLocation->getType(),
+              CharUnits::fromQuantity(
+                  ExceptionEscapeUBLastInvokeSrcLoc->getAlign().value())));
 }
 
 CGCallee CGCallee::prepareConcreteCallee(CodeGenFunction &CGF) const {

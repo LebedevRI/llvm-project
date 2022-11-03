@@ -107,6 +107,7 @@ SANITIZER("signed-integer-overflow", SignedIntegerOverflow)
 SANITIZER("unreachable", Unreachable)
 SANITIZER("vla-bound", VLABound)
 SANITIZER("vptr", Vptr)
+SANITIZER("exception-escape", ExceptionEscape)
 
 // IntegerSanitizer
 SANITIZER("unsigned-integer-overflow", UnsignedIntegerOverflow)
@@ -144,7 +145,7 @@ SANITIZER_GROUP("undefined", Undefined,
                     IntegerDivideByZero | NonnullAttribute | Null | ObjectSize |
                     PointerOverflow | Return | ReturnsNonnullAttribute | Shift |
                     SignedIntegerOverflow | Unreachable | VLABound | Function |
-                    Vptr)
+                    Vptr | ExceptionEscape)
 
 // -fsanitize=undefined-trap is an alias for -fsanitize=undefined.
 SANITIZER_GROUP("undefined-trap", UndefinedTrap, Undefined)

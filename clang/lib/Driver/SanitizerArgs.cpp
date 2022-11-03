@@ -58,8 +58,9 @@ static const SanitizerMask RecoverableByDefault =
     SanitizerKind::Undefined | SanitizerKind::Integer |
     SanitizerKind::ImplicitConversion | SanitizerKind::Nullability |
     SanitizerKind::FloatDivideByZero | SanitizerKind::ObjCCast;
-static const SanitizerMask Unrecoverable =
-    SanitizerKind::Unreachable | SanitizerKind::Return;
+static const SanitizerMask Unrecoverable = SanitizerKind::Unreachable |
+                                           SanitizerKind::Return |
+                                           SanitizerKind::ExceptionEscape;
 static const SanitizerMask AlwaysRecoverable = SanitizerKind::KernelAddress |
                                                SanitizerKind::KernelHWAddress |
                                                SanitizerKind::KCFI;

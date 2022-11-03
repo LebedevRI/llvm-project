@@ -69,3 +69,4 @@ UBSAN_CHECK(InvalidNullArgumentWithNullability, "invalid-null-argument",
             "nullability-arg")
 UBSAN_CHECK(DynamicTypeMismatch, "dynamic-type-mismatch", "vptr")
 UBSAN_CHECK(CFIBadType, "cfi-bad-type", "cfi")
+UBSAN_CHECK(ExceptionEscape, "exception-escape", "exception-escape")

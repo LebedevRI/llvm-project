@@ -99,6 +99,13 @@ UNRECOVERABLE(builtin_unreachable, UnreachableData *Data)
 /// \brief Handle reaching the end of a value-returning function.
 UNRECOVERABLE(missing_return, UnreachableData *Data)
 
+struct ExceptionEscapeData {
+  SourceLocation Loc;
+};
+
+/// \brief Handle exception escaping out of C++ `noexcept` function.
+UNRECOVERABLE(exception_escape, ExceptionEscapeData *Data, ValueHandle Exn)
+
 struct VLABoundData {
   SourceLocation Loc;
   const TypeDescriptor &Type;

@@ -152,7 +152,7 @@ bool EHScopeStack::containsOnlyLifetimeMarkers(
   return true;
 }
 
-bool EHScopeStack::requiresLandingPad() const {
+EHScopeStack::iterator EHScopeStack::getInnermostEHScopeForUnwind() const {
   for (stable_iterator si = getInnermostEHScope(); si != stable_end(); ) {
     // Skip lifetime markers.
     if (auto *cleanup = dyn_cast<EHCleanupScope>(&*find(si)))
@@ -160,10 +160,30 @@ bool EHScopeStack::requiresLandingPad() const {
         si = cleanup->getEnclosingEHScope();
         continue;
       }
-    return true;
+    return find(si);
   }
 
-  return false;
+  return end();
+}
+
+bool EHScopeStack::wouldUnwindBeUB() const {
+  EHScopeStack::iterator it = getInnermostEHScopeForUnwind();
+  if (it == end())
+    return false;
+
+  // If we are in exception scope which causes UB if any exception reaches it,
+  // and we are not sanitizing for that UB, then the unwind would indeed be UB.
+  // because the callee will not unwind and the landing pad won't be reached.
+  auto *ub = dyn_cast<EHUBScope>(&*it);
+  return ub && !ub->getIsSanitized();
+}
+
+bool EHScopeStack::requiresLandingPad() const {
+  EHScopeStack::iterator it = getInnermostEHScopeForUnwind();
+  if (it == end())
+    return false;
+
+  return !wouldUnwindBeUB();
 }
 
 EHScopeStack::stable_iterator
@@ -188,9 +208,15 @@ void *EHScopeStack::pushCleanup(CleanupKind Kind, size_t Size) {
   // some, or all cleanups are called before std::terminate. Thus, when
   // terminate is the current EH scope, we may skip adding any EH cleanup
   // scopes.
-  if (InnermostEHScope != stable_end() &&
-      find(InnermostEHScope)->getKind() == EHScope::Terminate)
-    IsEHCleanup = false;
+  //
+  // Likewise, if the exception escaping out of the function would be UB,
+  // skip adding any EH cleanup scopes.
+  if (InnermostEHScope != stable_end()) {
+    if (EHScope::Kind InnermostEHScopeKind = find(InnermostEHScope)->getKind();
+        InnermostEHScopeKind == EHScope::Terminate ||
+        InnermostEHScopeKind == EHScope::UB)
+      IsEHCleanup = false;
+  }
 
   EHCleanupScope *Scope =
     new (Buffer) EHCleanupScope(IsNormalCleanup,
@@ -240,7 +266,8 @@ void EHScopeStack::popCleanup() {
 }
 
 EHFilterScope *EHScopeStack::pushFilter(unsigned numFilters) {
-  assert(getInnermostEHScope() == stable_end());
+  assert(getInnermostEHScope() == stable_end() ||
+         isa<EHUBScope>(*find(getInnermostEHScope())));
   char *buffer = allocate(EHFilterScope::getSizeForNumFilters(numFilters));
   EHFilterScope *filter = new (buffer) EHFilterScope(numFilters);
   InnermostEHScope = stable_begin();
@@ -267,6 +294,12 @@ EHCatchScope *EHScopeStack::pushCatch(unsigned numHandlers) {
 void EHScopeStack::pushTerminate() {
   char *Buffer = allocate(EHTerminateScope::getSize());
   new (Buffer) EHTerminateScope(InnermostEHScope);
+  InnermostEHScope = stable_begin();
+}
+
+void EHScopeStack::pushUB(bool isSanitized) {
+  char *Buffer = allocate(EHUBScope::getSize());
+  new (Buffer) EHUBScope(isSanitized, InnermostEHScope);
   InnermostEHScope = stable_begin();
 }
 

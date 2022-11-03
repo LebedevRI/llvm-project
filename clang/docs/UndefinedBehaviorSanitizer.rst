@@ -180,6 +180,8 @@ Available checks are:
      Incompatible with ``-fno-rtti``. Link must be performed by ``clang++``, not
      ``clang``, to make sure C++-specific parts of the runtime library and C++
      standard libraries are present.
+  -  ``-fsanitize=exception-escape``: A C++ exception unwinding out of an
+     non-unwind function is an undefined behavior. This catches such situations.
 
 You can also use the following check groups:
   -  ``-fsanitize=undefined``: All of the checks listed above other than

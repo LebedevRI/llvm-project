@@ -134,7 +134,8 @@ enum TypeEvaluationKind {
   SANITIZER_CHECK(SubOverflow, sub_overflow, 0)                                \
   SANITIZER_CHECK(TypeMismatch, type_mismatch, 1)                              \
   SANITIZER_CHECK(AlignmentAssumption, alignment_assumption, 0)                \
-  SANITIZER_CHECK(VLABoundNotPositive, vla_bound_not_positive, 0)
+  SANITIZER_CHECK(VLABoundNotPositive, vla_bound_not_positive, 0)              \
+  SANITIZER_CHECK(ExceptionEscape, exception_escape, 0)
 
 enum SanitizerHandler {
 #define SANITIZER_CHECK(Enum, Name, Version) Enum,
@@ -1959,10 +1960,18 @@ private:
 
   llvm::BasicBlock *TerminateLandingPad = nullptr;
   llvm::BasicBlock *TerminateHandler = nullptr;
+
+  llvm::BasicBlock *ExceptionEscapeUBSanitizerBB = nullptr;
+  llvm::BasicBlock *ExceptionEscapeUBLandingPad = nullptr;
+  llvm::BasicBlock *ExceptionEscapeUBHandler = nullptr;
+
   llvm::SmallVector<llvm::BasicBlock *, 2> TrapBBs;
 
   /// Terminate funclets keyed by parent funclet pad.
   llvm::MapVector<llvm::Value *, llvm::BasicBlock *> TerminateFunclets;
+
+  llvm::BasicBlock *UBLandingPad = nullptr;
+  llvm::AllocaInst *ExceptionEscapeUBLastInvokeSrcLoc = nullptr;
 
   /// Largest vector width used in ths function. Will be used to create a
   /// function attribute.
@@ -2382,14 +2391,25 @@ public:
   /// Emit a test that checks if the return value \p RV is nonnull.
   void EmitReturnValueCheck(llvm::Value *RV);
 
+  /// Internal to `EmitStartEHSpec()`/`EmitEndEHSpec()`, do not use directly.
+  bool ExceptionEscapeIsProgramTermination(const Decl *D, bool IsStart);
+
   /// EmitStartEHSpec - Emit the start of the exception spec.
   void EmitStartEHSpec(const Decl *D);
 
   /// EmitEndEHSpec - Emit the end of the exception spec.
   void EmitEndEHSpec(const Decl *D);
 
+  /// getExceptionEscapeUBLandingPad - Return a simple basic block
+  /// that just calls the ubsan handler, if enabled.
+  llvm::BasicBlock *getExceptionEscapeUBSanitizerBB();
+
   /// getTerminateLandingPad - Return a landing pad that just calls terminate.
   llvm::BasicBlock *getTerminateLandingPad();
+
+  /// getExceptionEscapeUBLandingPad - Return a landing pad that just calls
+  /// ubsan handler, if enabled.
+  llvm::BasicBlock *getExceptionEscapeUBLandingPad();
 
   /// getTerminateLandingPad - Return a cleanup funclet that just calls
   /// terminate.
@@ -2399,6 +2419,11 @@ public:
   /// a catch handler) that just calls terminate.  This is used when
   /// a terminate scope encloses a try.
   llvm::BasicBlock *getTerminateHandler();
+
+  /// getExceptionEscapeUBHandler - Return a handler (not a landing pad, just
+  /// a catch handler) that just calls ubsan check, if it is enabled.
+  /// This is used when a UB scope encloses a try.
+  llvm::BasicBlock *getExceptionEscapeUBHandler();
 
   llvm::Type *ConvertTypeForMem(QualType T);
   llvm::Type *ConvertType(QualType T);
@@ -4004,6 +4029,8 @@ public:
   //===--------------------------------------------------------------------===//
   //                         Scalar Expression Emission
   //===--------------------------------------------------------------------===//
+
+  void MaybeRecordCurrLocForExceptionEscapeUBSan(SourceLocation Loc);
 
   /// EmitCall - Generate a call of the given function, expecting the given
   /// result type, and using the given argument list which specifies both the

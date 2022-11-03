@@ -448,6 +448,9 @@ void CodeGenFunction::FinishFunction(SourceLocation EndLoc) {
   EmitIfUsed(*this, TerminateLandingPad);
   EmitIfUsed(*this, TerminateHandler);
   EmitIfUsed(*this, UnreachableBlock);
+  EmitIfUsed(*this, ExceptionEscapeUBSanitizerBB);
+  EmitIfUsed(*this, ExceptionEscapeUBLandingPad);
+  EmitIfUsed(*this, ExceptionEscapeUBHandler);
 
   for (const auto &FuncletAndParent : TerminateFunclets)
     EmitIfUsed(*this, FuncletAndParent.second);
