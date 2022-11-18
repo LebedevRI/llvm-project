@@ -437,6 +437,20 @@ protected:
 public:
   Type *getType() const { return getOperand(0)->getType(); }
 
+  static Optional<SCEVTypes> getEquivalentSequentialSCEVType(SCEVTypes Ty) {
+    assert(isMinMaxType(Ty));
+    switch (Ty) {
+    case scUMinExpr:
+      return scSequentialUMinExpr;
+    default:
+      return None;
+    }
+  }
+
+  Optional<SCEVTypes> getEquivalentSequentialSCEVType() const {
+    return getEquivalentSequentialSCEVType(getSCEVType());
+  }
+
   static bool classof(const SCEV *S) { return isMinMaxType(S->getSCEVType()); }
 
   static enum SCEVTypes negate(enum SCEVTypes T) {

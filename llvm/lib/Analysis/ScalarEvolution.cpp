@@ -3875,6 +3875,53 @@ const SCEV *ScalarEvolution::getMinMaxExpr(SCEVTypes Kind,
       return getMinMaxExpr(Kind, Ops);
   }
 
+  if (Optional<SCEVTypes> SeqTy =
+          SCEVMinMaxExpr::getEquivalentSequentialSCEVType(Kind)) {
+    SmallVector<const SCEV *, 8> FrozenOps;
+
+    Idx = 0;
+    // Find the first operation of the `unknown` kind.
+    while (Idx < Ops.size() && Ops[Idx]->getSCEVType() < scUnknown)
+      ++Idx;
+
+    Optional<unsigned> FirstIdx;
+    unsigned LastIdx;
+
+    // Remember all `unknown` SCEVs, iff the IR `Value` they are wrapping
+    // is a `freeze` instruction.
+    while (Idx < Ops.size() && Ops[Idx]->getSCEVType() == scUnknown) {
+      if (isa<FreezeInst>(cast<SCEVUnknown>(Ops[Idx])->getValue())) {
+        if (!FirstIdx)
+          FirstIdx = Idx;
+        LastIdx = Idx;
+        FrozenOps.emplace_back(Ops[Idx]);
+      }
+      ++Idx;
+    }
+
+    if (FrozenOps.size() > 1) {
+      SmallVector<const SCEV *, 8> NewOps;
+      const size_t SizePrediction = Ops.size() - FrozenOps.size() + 1;
+      NewOps.reserve(SizePrediction);
+
+      NewOps.append(&Ops[0], &Ops[*FirstIdx]);
+
+      SmallSet<const SCEV *, 8> FrozenOpsSet;
+      FrozenOpsSet.insert(FrozenOps.begin(), FrozenOps.end());
+      for (Idx = *FirstIdx; Idx <= LastIdx; ++Idx)
+        if (!FrozenOpsSet.contains(Ops[Idx]))
+          NewOps.push_back(Ops[Idx]);
+
+      NewOps.append(&Ops[LastIdx + 1], Ops.end());
+
+      NewOps.push_back(getSequentialMinMaxExpr(*SeqTy, FrozenOps));
+
+      assert(NewOps.size() == SizePrediction && "Size mismatch");
+
+      return getMinMaxExpr(Kind, Ops);
+    }
+  }
+
   // Okay, check to see if the same value occurs in the operand list twice.  If
   // so, delete one.  Since we sorted the list, these values are required to
   // be adjacent.
