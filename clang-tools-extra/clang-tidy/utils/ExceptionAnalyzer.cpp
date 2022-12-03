@@ -115,6 +115,8 @@ ExceptionAnalyzer::ExceptionInfo ExceptionAnalyzer::throwsException(
   if (CallStack.count(Func))
     return ExceptionInfo::createNonThrowing();
 
+  // FIXME: this does not deal with NoThrow attribute.
+
   if (const Stmt *Body = Func->getBody()) {
     CallStack.insert(Func);
     ExceptionInfo Result =

@@ -9,12 +9,12 @@ struct B_ShouldDiag {
   int i;
   ~B_ShouldDiag() noexcept(true) {} //no disg, no throw stmt
 };
-struct R_ShouldDiag : A_ShouldDiag {
+struct R_ShouldDiag_NoThrow : A_ShouldDiag {
   B_ShouldDiag b;
-  ~R_ShouldDiag() { // expected-note  {{destructor has a implicit non-throwing exception specification}}
+  ~R_ShouldDiag_NoThrow() { // expected-note  {{destructor has a implicit non-throwing exception specification}}
     throw 1; // expected-warning {{has a non-throwing exception specification but}}
   }
-  __attribute__((nothrow)) R_ShouldDiag() {// expected-note {{function declared non-throwing here}}
+  __attribute__((nothrow)) R_ShouldDiag_NoThrow() {// expected-note {{function declared non-throwing here}}
     throw 1;// expected-warning {{has a non-throwing exception specification but}}
   }
   void __attribute__((nothrow)) SomeThrow() {// expected-note {{function declared non-throwing here}}
@@ -240,7 +240,7 @@ void n_ShouldNotDiag() noexcept {
   }
 }
 // As seen in p34973, this should not throw the warning.  If there is an active
-// exception, catch(...) catches everything. 
+// exception, catch(...) catches everything.
 void o_ShouldNotDiag() noexcept {
   try {
     throw;

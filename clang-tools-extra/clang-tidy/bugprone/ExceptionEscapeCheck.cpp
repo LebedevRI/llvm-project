@@ -52,6 +52,7 @@ void ExceptionEscapeCheck::storeOptions(ClangTidyOptions::OptionMap &Opts) {
 }
 
 void ExceptionEscapeCheck::registerMatchers(MatchFinder *Finder) {
+  // FIXME: this does not consider NoThrowAttr.
   Finder->addMatcher(
       functionDecl(anyOf(isNoThrow(), cxxDestructorDecl(),
                          cxxConstructorDecl(isMoveConstructor()),

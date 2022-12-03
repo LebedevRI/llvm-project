@@ -26,9 +26,28 @@ struct throwing_move_assignment {
   }
 };
 
+void thrower(int n) {
+  throw n;
+}
+
 void throwing_noexcept() noexcept {
     // CHECK-MESSAGES: :[[@LINE-1]]:6: warning: an exception may be thrown in function 'throwing_noexcept' which should not throw exceptions
   throw 1;
+}
+
+void __attribute__((nothrow)) throwing_attribute_nothrow() {
+  // CHECK-MESSAGES: :[[@LINE-1]]:31: warning: an exception may be thrown in function 'throwing_attribute_nothrow' which should not throw exceptions
+  throw 1;
+}
+
+// FIXME: false-positives.
+void non_throwing_call_of_noexcept() noexcept {
+  // CHECK-MESSAGES: :[[@LINE-1]]:6: warning: an exception may be thrown in function 'non_throwing_call_of_noexcept' which should not throw exceptions
+  throwing_noexcept();
+}
+void non_throwing_call_of_attribute_nothrow() noexcept {
+  // CHECK-MESSAGES: :[[@LINE-1]]:6: warning: an exception may be thrown in function 'non_throwing_call_of_attribute_nothrow' which should not throw exceptions
+  throwing_attribute_nothrow();
 }
 
 void throwing_throw_nothing() throw() {
@@ -261,10 +280,6 @@ void this_counts(int n) noexcept {
   // CHECK-MESSAGES: :[[@LINE-1]]:6: warning: an exception may be thrown in function 'this_counts' which should not throw exceptions
   if (n) throw 1;
   throw ignored1();
-}
-
-void thrower(int n) {
-  throw n;
 }
 
 int directly_recursive(int n) noexcept {

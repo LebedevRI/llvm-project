@@ -1104,7 +1104,7 @@ def Common : InheritableAttr {
 
 def Const : InheritableAttr {
   let Spellings = [GCC<"const">, GCC<"__const">];
-  let Documentation = [Undocumented];
+  let Documentation = [ConstDocs];
   let SimpleHandler = 1;
 }
 
@@ -2391,7 +2391,7 @@ def AArch64SVEPcs: DeclOrTypeAttr {
 
 def Pure : InheritableAttr {
   let Spellings = [GCC<"pure">];
-  let Documentation = [Undocumented];
+  let Documentation = [PureDocs];
   let SimpleHandler = 1;
 }
 
@@ -4122,6 +4122,7 @@ def FunctionReturnThunks : InheritableAttr,
   let Subjects = SubjectList<[Function]>;
   let Documentation = [FunctionReturnThunksDocs];
 }
+
 def ReadOnlyPlacement : InheritableAttr {
   let Spellings = [Clang<"enforce_read_only_placement">];
   let Subjects = SubjectList<[Record]>;

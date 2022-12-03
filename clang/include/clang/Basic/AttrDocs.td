@@ -535,20 +535,57 @@ migration for code using ``[[noreturn]]`` after including ``<stdnoreturn.h>``.
   }];
 }
 
+def PureDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+A function declared with the ``pure`` attribute guarantees it does not have
+infinite loops (i.e. they must either terminate or return to the caller,
+be it either via a normal return, or by throwing an exception and unwinding
+or exibiting UB), and will not cause any observable side-effects other than
+returning a value. They may read memory, but can not modify memory in a way
+that would either affect observable state or their outcome on subsequent runs.
+
+Note: this attribute does not define any behaviour regarding exceptions,
+so functions annotated with this attribute are allowed to throw exceptions,
+and doing so is neither UB nor will cause immediate program termination,
+but rather the exception will successfully unwind into function's caller.
+  }];
+}
+
+def ConstDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+A stronger version of ``pure`` attribute.
+
+A function declared with ``const`` attribute guarantees  it does not not have
+infinite loops (i.e. they must either terminate or return to the caller,
+be it either via a normal return, or by throwing an exception and unwinding
+or exibiting UB), and will not cause any observable side-effects other than
+returning a value. They cannot write to memory, unlike functions declared
+with ``pure`` attribute, but may still read memory that is immutable between
+invocations of the function.
+
+Note: this attribute does not define any behaviour regarding exceptions,
+so functions annotated with this attribute are allowed to throw exceptions,
+and doing so is neither UB nor will cause immediate program termination,
+but rather the exception will successfully unwind into function's caller.
+  }];
+}
+
 def NoMergeDocs : Documentation {
   let Category = DocCatStmt;
   let Content = [{
 If a statement is marked ``nomerge`` and contains call expressions, those call
-expressions inside the statement will not be merged during optimization. This 
+expressions inside the statement will not be merged during optimization. This
 attribute can be used to prevent the optimizer from obscuring the source
 location of certain calls. For example, it will prevent tail merging otherwise
 identical code sequences that raise an exception or terminate the program. Tail
 merging normally reduces the precision of source location information, making
 stack traces less useful for debugging. This attribute gives the user control
-over the tradeoff between code size and debug information precision. 
+over the tradeoff between code size and debug information precision.
 
-``nomerge`` attribute can also be used as function attribute to prevent all 
-calls to the specified function from merging. It has no effect on indirect 
+``nomerge`` attribute can also be used as function attribute to prevent all
+calls to the specified function from merging. It has no effect on indirect
 calls.
   }];
 }
@@ -1581,7 +1618,7 @@ attributes are ignored. Supported platforms are:
 ``watchos``
   Apple's watchOS operating system. The minimum deployment target is specified by
   the ``-mwatchos-version-min=*version*`` command-line argument.
-  
+
 ``driverkit``
   Apple's DriverKit userspace kernel extensions. The minimum deployment target
   is specified as part of the triple.
@@ -3883,7 +3920,7 @@ Whether a particular pointer may be "null" is an important concern when working
 with pointers in the C family of languages. The various nullability attributes
 indicate whether a particular pointer can be null or not, which makes APIs more
 expressive and can help static analysis tools identify bugs involving null
-pointers. Clang supports several kinds of nullability attributes: the 
+pointers. Clang supports several kinds of nullability attributes: the
 ``nonnull`` and ``returns_nonnull`` attributes indicate which function or
 method parameters and result types can never be null, while nullability type
 qualifiers indicate which pointer types can be null (``_Nullable``) or cannot
@@ -4059,7 +4096,7 @@ memory is not available rather than returning a null pointer:
 The ``returns_nonnull`` attribute implies that returning a null pointer is
 undefined behavior, which the optimizer may take advantage of. The ``_Nonnull``
 type qualifier indicates that a pointer cannot be null in a more general manner
-(because it is part of the type system) and does not imply undefined behavior, 
+(because it is part of the type system) and does not imply undefined behavior,
 making it more widely applicable
 }];
 }
@@ -4598,6 +4635,9 @@ declarations. This attribute informs the compiler that the annotated function
 does not throw an exception. This prevents exception-unwinding. This attribute
 is particularly useful on functions in the C Standard Library that are
 guaranteed to not throw an exception.
+
+If an exception does unwind out of a function marked with this attribute,
+the behaviour matches that of ``noexcept`` -- program is immediately terminated.
     }];
 }
 
@@ -6008,15 +6048,15 @@ def CFGuardDocs : Documentation {
   let Content = [{
 Code can indicate CFG checks are not wanted with the ``__declspec(guard(nocf))``
 attribute. This directs the compiler to not insert any CFG checks for the entire
-function. This approach is typically used only sparingly in specific situations 
-where the programmer has manually inserted "CFG-equivalent" protection. The 
-programmer knows that they are calling through some read-only function table 
-whose address is obtained through read-only memory references and for which the 
-index is masked to the function table limit. This approach may also be applied 
-to small wrapper functions that are not inlined and that do nothing more than 
-make a call through a function pointer. Since incorrect usage of this directive 
-can compromise the security of CFG, the programmer must be very careful using 
-the directive. Typically, this usage is limited to very small functions that 
+function. This approach is typically used only sparingly in specific situations
+where the programmer has manually inserted "CFG-equivalent" protection. The
+programmer knows that they are calling through some read-only function table
+whose address is obtained through read-only memory references and for which the
+index is masked to the function table limit. This approach may also be applied
+to small wrapper functions that are not inlined and that do nothing more than
+make a call through a function pointer. Since incorrect usage of this directive
+can compromise the security of CFG, the programmer must be very careful using
+the directive. Typically, this usage is limited to very small functions that
 only call one function.
 
 `Control Flow Guard documentation <https://docs.microsoft.com/en-us/windows/win32/secbp/pe-metadata>`

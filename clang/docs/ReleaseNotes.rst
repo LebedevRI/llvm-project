@@ -348,6 +348,9 @@ Bug Fixes
 - Fix issue that the standard C++ modules importer will call global
   constructor/destructor for the global varaibles in the importing modules.
   This fixes `Issue 59765 <https://github.com/llvm/llvm-project/issues/59765>`_
+- ``__attribute__((const))``/``__attribute__((pure))`` are no longer defined as
+  exhibiting UB if an exception unwinds out a function marked with such
+  an attribute. This matches GCC behavior.
 
 Improvements to Clang's diagnostics
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -579,6 +582,10 @@ Attribute Changes in Clang
   to support analysis of instances of a given type focused on read-only program
   memory placement. It emits a warning if something in the code provably prevents
   an instance from a read-only memory placement.
+
+- ``__attribute__((const))``/``__attribute__((pure))`` are no longer defined as
+  exhibiting UB if an exception unwinds out a function marked with such
+  an attribute. This matches GCC behavior.
 
 Windows Support
 ---------------
