@@ -403,12 +403,13 @@ private:
   template <typename DerivedT, typename RetT = void> class BuilderBase;
   class SliceBuilder;
 
+  void rewriteVariablyIndexedLoad(Instruction &Root, LoadInst *LI);
+  Instruction &rewriteVariablyIndexedLoads(ArrayRef<LoadInst *> LIs);
+
   friend class AllocaSlices::SliceBuilder;
 
-#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
   /// Handle to alloca instruction to simplify method interfaces.
   AllocaInst &AI;
-#endif
 
   /// The instruction responsible for this alloca not having a known set
   /// of slices.
@@ -757,14 +758,18 @@ class AllocaSlices::SliceBuilder : public PtrUseVisitor<SliceBuilder> {
   SmallDenseMap<Instruction *, unsigned> MemTransferSliceMap;
   SmallDenseMap<Instruction *, uint64_t> PHIOrSelectSizes;
 
+  /// All `load`s with non-constant offsets.
+  SmallVectorImpl<LoadInst *> &VariablyIndexedLoads;
+
   /// Set to de-duplicate dead instructions found in the use walk.
   SmallPtrSet<Instruction *, 4> VisitedDeadInsts;
 
 public:
-  SliceBuilder(const DataLayout &DL, AllocaInst &AI, AllocaSlices &AS)
+  SliceBuilder(const DataLayout &DL, AllocaInst &AI, AllocaSlices &AS,
+               SmallVectorImpl<LoadInst *> &VariablyIndexedLoads_)
       : PtrUseVisitor<SliceBuilder>(DL),
         AllocSize(DL.getTypeAllocSize(AI.getAllocatedType()).getFixedSize()),
-        AS(AS) {}
+        AS(AS), VariablyIndexedLoads(VariablyIndexedLoads_) {}
 
 private:
   void markAsDead(Instruction &I) {
@@ -881,17 +886,37 @@ private:
     insertUse(I, Offset, Size, IsSplittable);
   }
 
+  void handleVariablyIndexedLoad(Type *Ty, LoadInst &LI, uint64_t Size,
+                                 bool IsVolatile) {
+    if (IsVolatile)
+      return PI.setAborted(&LI);
+    Type *LoadBitTy = IntegerType::get(LI.getContext(), 8 * Size);
+    // We must be able to cast to the load's type from iN type. So no pointers.
+    if (!BitCastInst::isBitCastable(LoadBitTy, Ty))
+      return PI.setAborted(&LI);
+    // Profitability reasoning: we expect that for the largest legal int type,
+    // we do have good support for variable-amount shifts. For the type 2x that
+    // width, the legalization will expand the shift into, at worst, 3 shifts
+    // plus 5 supporting ALU ops. We expect that such an expansion is still not
+    // worse than failing to promote the alloca.
+    // But for any bit width larger than that, this isn't worth it.
+    uint64_t AllocaBitwidth = 8 * AllocSize;
+    if (unsigned MaxIntBitwidth = DL.getLargestLegalIntTypeSizeInBits();
+        AllocaBitwidth > 2 * MaxIntBitwidth)
+      return PI.setAborted(&LI);
+    VariablyIndexedLoads.emplace_back(&LI);
+  }
+
   void visitLoadInst(LoadInst &LI) {
     assert((!LI.isSimple() || LI.getType()->isSingleValueType()) &&
            "All simple FCA loads should have been pre-split");
-
-    if (!IsOffsetKnown)
-      return PI.setAborted(&LI);
 
     if (isa<ScalableVectorType>(LI.getType()))
       return PI.setAborted(&LI);
 
     uint64_t Size = DL.getTypeStoreSize(LI.getType()).getFixedSize();
+    if (!IsOffsetKnown)
+      return handleVariablyIndexedLoad(LI.getType(), LI, Size, LI.isVolatile());
     return handleLoadOrStore(LI.getType(), LI, Offset, Size, LI.isVolatile());
   }
 
@@ -1157,12 +1182,9 @@ private:
 };
 
 AllocaSlices::AllocaSlices(const DataLayout &DL, AllocaInst &AI)
-    :
-#if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
-      AI(AI),
-#endif
-      PointerEscapingInstr(nullptr) {
-  SliceBuilder PB(DL, AI, *this);
+    : AI(AI), PointerEscapingInstr(nullptr) {
+  SmallVector<LoadInst *, 8> VariablyIndexedLoads;
+  SliceBuilder PB(DL, AI, *this, VariablyIndexedLoads);
   SliceBuilder::PtrInfo PtrI = PB.visitPtr(AI);
   if (PtrI.isEscaped() || PtrI.isAborted()) {
     // FIXME: We should sink the escape vs. abort info into the caller nicely,
@@ -1173,11 +1195,142 @@ AllocaSlices::AllocaSlices(const DataLayout &DL, AllocaInst &AI)
     return;
   }
 
+  // Ok, if we are still here, then we can deal with everything we encountered.
+
+  if (!VariablyIndexedLoads.empty()) {
+    Instruction &Root = rewriteVariablyIndexedLoads(VariablyIndexedLoads);
+    SliceBuilder::PtrInfo PtrI = PB.visitPtr(Root);
+    assert(!PtrI.isEscaped() && !PtrI.isAborted());
+  }
+
   llvm::erase_if(Slices, [](const Slice &S) { return S.isDead(); });
 
   // Sort the uses. This arranges for the offsets to be in ascending order,
   // and the sizes to be in descending order.
   llvm::stable_sort(Slices);
+}
+
+// Given the load \p LI, how do we come up with it's address?
+// Recurse until we reach the base `alloca`, remembering `Instruction` sequence.
+static SmallVector<Value *, 8> getAddressCalculationStack(LoadInst *LI) {
+  SmallVector<Value *, 8> Stack;
+  Stack.emplace_back(LI->getPointerOperand());
+  while (true) {
+    auto *I = dyn_cast<Instruction>(Stack.back());
+    assert(I && I->getType()->isPointerTy() && "Not a ptr-to-ptr instruction");
+    switch (I->getOpcode()) {
+    case Instruction::Alloca:
+      // Done recursing.
+      return Stack;
+    case Instruction::GetElementPtr:
+    case Instruction::BitCast:
+    case Instruction::AddrSpaceCast:
+      Stack.emplace_back(I->getOperand(0));
+      break;
+    default:
+      // We don't allow `select`s/`PHI`s of variably-offset addresses,
+      // so we should not get here.
+      llvm_unreachable("Unexpected address-calculating instruction.");
+    }
+  }
+  return Stack;
+}
+
+// Given the \p LI load's address, produce an expression equivalent to the
+//   ptrtoint(address into alloca) - ptrtoint(alloca)
+// but without referencing the alloca itself.
+static Value *getVariableByteOffsetIntoAlloca(LoadInst *LI) {
+  SmallVector<Value *, 8> Stack = getAddressCalculationStack(LI);
+  auto *OrigRoot = cast<AllocaInst>(Stack.pop_back_val());
+  Constant *NullRoot = ConstantPointerNull::get(OrigRoot->getType());
+
+  // Replicate the address-computation Instruction stack,
+  // but start off of `null` pointer.
+  Value *NewPtr = NullRoot;
+  while (!Stack.empty()) {
+    auto *OrigInstr = cast<Instruction>(Stack.pop_back_val());
+    auto *NewInstr = OrigInstr->clone();
+    NewInstr->setOperand(0, NewPtr);
+    NewInstr->insertAfter(OrigInstr);
+    if (auto *NewGEPI = dyn_cast<GetElementPtrInst>(NewInstr))
+      NewGEPI->setIsInBounds(false);
+    else {
+      // For non-GEP's, also "rebase" the root, so they maintain same type.
+      NullRoot = ConstantExpr::getPointerBitCastOrAddrSpaceCast(
+          NullRoot, NewInstr->getType());
+    }
+    NewPtr = NewInstr;
+  }
+
+  // Finally, compute the byte distance between the "dummy" address and `null`.
+  IRBuilderTy Builder(LI);
+  Type *ByteTy = IntegerType::getInt8Ty(Builder.getContext());
+  Type *BytePtrTy = ByteTy->getPointerTo(LI->getPointerAddressSpace());
+  NewPtr = Builder.CreatePointerBitCastOrAddrSpaceCast(NewPtr, BytePtrTy);
+  NullRoot =
+      ConstantExpr::getPointerBitCastOrAddrSpaceCast(NullRoot, BytePtrTy);
+  return Builder.CreatePtrDiff(ByteTy, NewPtr, NullRoot);
+}
+
+// For each variably-indexed load, perform a wide load of the whole alloca
+// (and now *that* we *can* promote), compute the byte offset into alloca
+// from which we've originally loaded, and then use bit math to extract
+// the equivalent bit sequence from the wide load.
+void AllocaSlices::rewriteVariablyIndexedLoad(Instruction &Root, LoadInst *LI) {
+  const DataLayout &DL = LI->getModule()->getDataLayout();
+  IRBuilderTy Builder(LI);
+
+  Type *LoadTy = LI->getType();
+  assert(!isa<ScalableVectorType>(LoadTy));
+
+  uint64_t AllocByteSize =
+      DL.getTypeAllocSize(AI.getAllocatedType()).getFixedSize();
+  uint64_t AllocBitwidth = 8 * AllocByteSize;
+
+  uint64_t LoadBitwidth = 8 * DL.getTypeStoreSize(LI->getType()).getFixedSize();
+
+  Type *LoadBitTy = IntegerType::get(Builder.getContext(), LoadBitwidth);
+  Type *AllocBitTy = IntegerType::get(Builder.getContext(), AllocBitwidth);
+  Type *AllocByteTy = FixedVectorType::get(
+      IntegerType::getInt8Ty(Builder.getContext()), AllocByteSize);
+
+  Value *V = Builder.CreateAlignedLoad(AllocByteTy, &Root, AI.getAlign(),
+                                       AI.getName() + ".val");
+  V = Builder.CreateFreeze(V, V->getName() + ".frozen");
+  V = Builder.CreateBitCast(V, AllocBitTy, V->getName() + ".bits");
+
+  Value *VariableByteOffset = getVariableByteOffsetIntoAlloca(LI);
+  Value *Offset = Builder.CreateMul(
+      VariableByteOffset, ConstantInt::get(VariableByteOffset->getType(), 8),
+      VariableByteOffset->getName() + ".numbits");
+  Offset = Builder.CreateZExtOrTrunc(Offset, AllocBitTy,
+                                     Offset->getName() + ".wide");
+
+  if (DL.isLittleEndian())
+    V = Builder.CreateLShr(V, Offset, V->getName() + ".positioned"); // inexact.
+  else {
+    V = Builder.CreateShl(V, Offset, V->getName() + ".positioned"); // inexact.
+    V = Builder.CreateLShr(
+        V, ConstantInt::get(V->getType(), AllocBitwidth - LoadBitwidth),
+        V->getName() + ".part");
+  }
+  V = Builder.CreateTrunc(V, LoadBitTy, V->getName() + ".extracted");
+  V = Builder.CreateBitCast(V, LoadTy);
+  LI->replaceAllUsesWith(V);
+  DeadUsers.emplace_back(LI);
+}
+
+Instruction &
+AllocaSlices::rewriteVariablyIndexedLoads(ArrayRef<LoadInst *> LIs) {
+  // Create empty GEP for to base all our newly-inserted instructions off of,
+  // so we can feed it back into `SliceBuilder` to record our instructions.
+  Instruction &Root = *GetElementPtrInst::CreateInBounds(
+      IntegerType::getInt8Ty(AI.getContext()), &AI, {});
+  Root.insertAfter(&AI);
+  // And just rewrite each `load` we previously recorded.
+  for (LoadInst *LI : LIs)
+    rewriteVariablyIndexedLoad(Root, LI);
+  return Root;
 }
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)
