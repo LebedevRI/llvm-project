@@ -38,12 +38,15 @@ define <2 x i64> @extrqi_len32_idx48(<2 x i64> %a) {
 define <16 x i8> @shuf_0zzzuuuuuuuuuuuu(<16 x i8> %a0) {
 ; AMD10H-LABEL: shuf_0zzzuuuuuuuuuuuu:
 ; AMD10H:       # %bb.0:
+; AMD10H-NEXT:    movdqa %xmm0, %xmm1
+; AMD10H-NEXT:    extrq {{.*#+}} xmm1 = xmm1[1],zero,zero,zero,zero,zero,zero,zero,xmm1[u,u,u,u,u,u,u,u]
 ; AMD10H-NEXT:    extrq {{.*#+}} xmm0 = xmm0[0],zero,zero,zero,zero,zero,zero,zero,xmm0[u,u,u,u,u,u,u,u]
+; AMD10H-NEXT:    punpcklqdq {{.*#+}} xmm0 = xmm0[0],xmm1[0]
 ; AMD10H-NEXT:    retq
 ;
 ; BTVER1-LABEL: shuf_0zzzuuuuuuuuuuuu:
 ; BTVER1:       # %bb.0:
-; BTVER1-NEXT:    extrq {{.*#+}} xmm0 = xmm0[0],zero,zero,zero,zero,zero,zero,zero,xmm0[u,u,u,u,u,u,u,u]
+; BTVER1-NEXT:    pshufb {{.*#+}} xmm0 = xmm0[0],zero,zero,zero,zero,zero,zero,zero,xmm0[1],zero,zero,zero,zero,zero,zero,zero
 ; BTVER1-NEXT:    retq
 ;
 ; BTVER2-LABEL: shuf_0zzzuuuuuuuuuuuu:
