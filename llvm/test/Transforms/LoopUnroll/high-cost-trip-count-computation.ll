@@ -1,12 +1,15 @@
-; RUN: opt -S -unroll-runtime -passes=loop-unroll < %s | FileCheck %s
+; RUN: opt -S -unroll-runtime -passes=loop-unroll -scev-cheap-expansion-budget=1    < %s | FileCheck %s --check-prefixes=CHECK
+; RUN: opt -S -unroll-runtime -passes=loop-unroll -scev-cheap-expansion-budget=8192 < %s | FileCheck %s --check-prefixes=CHECK,CHECK-HIGH-BUDGET
+; RUN: opt -S -unroll-runtime -passes=loop-unroll                                   < %s | FileCheck %s --check-prefixes=CHECK
 
 target datalayout = "e-p:64:64:64-i1:8:8-i8:8:8-i16:16:16-i32:32:32-i64:64:64-f32:32:32-f64:64:64-v64:64:64-v128:128:128-a0:0:64-s0:64:64-f80:128:128-n8:16:32:64-S128"
 
-;; Check that we don't emit expensive instructions to compute trip
+;; Check that we generally don't emit expensive instructions to compute trip
 ;; counts when unrolling loops.
 
 define i32 @test(i64 %v12, ptr %array, ptr %loc) {
 ; CHECK-LABEL: @test(
+; CHECK-HIGH-BUDGET: udiv
 ; CHECK-NOT: udiv
 entry:
   %step = load i64, ptr %loc, !range !0

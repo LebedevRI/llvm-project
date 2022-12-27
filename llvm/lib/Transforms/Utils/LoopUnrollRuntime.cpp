@@ -654,7 +654,7 @@ bool llvm::UnrollRuntimeLoopRemainder(
   const DataLayout &DL = Header->getModule()->getDataLayout();
   SCEVExpander Expander(*SE, DL, "loop-unroll");
   if (!AllowExpensiveTripCount &&
-      Expander.isHighCostExpansion(TripCountSC, L, SCEVCheapExpansionBudget,
+      Expander.isHighCostExpansion(TripCountSC, L, 2 * SCEVCheapExpansionBudget,
                                    TTI, PreHeaderBR)) {
     LLVM_DEBUG(dbgs() << "High cost for expanding trip count scev!\n");
     return false;
