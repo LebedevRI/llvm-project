@@ -532,6 +532,14 @@ New Compiler Flags
       int b[0]; // NOT a flexible array member.
     };
 
+- :option:`-fstrict-noexcept` and
+  :option:`-fno-strict-noexcept` -
+   By default, if an exception tries to escape out of a function with C++'s
+   ``noexcept`` exception specification, the program will be terminated.
+   This option (default off), allows to opt-in into a language dialect,
+   where such an exception escape causes Undefined Behaviour instead.
+
+
 Deprecated Compiler Flags
 -------------------------
 - ``-enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang``

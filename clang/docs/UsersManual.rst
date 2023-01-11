@@ -1787,6 +1787,12 @@ floating point semantic models: precise (the default), strict, and fast.
    * ``16`` - Forces ``_Float16`` operations to be emitted without using excess
      precision arithmetic.
 
+.. option:: `-fstrict-noexcept`
+   By default, if an exception tries to escape out of a function with C++'s
+   ``noexcept`` exception specification, the program will be terminated.
+   This option (default off), allows to opt-in into a language dialect,
+   where such an exception escape causes Undefined Behaviour instead.
+
 .. _crtfastmath.o:
 
 A note about ``crtfastmath.o``

@@ -5411,6 +5411,9 @@ RValue CodeGenFunction::EmitCall(const CGFunctionInfo &CallInfo,
   llvm::CallBase *CI;
   if (!InvokeDest) {
     CI = Builder.CreateCall(IRFuncTy, CalleePtr, IRCallArgs, BundleList);
+    if (EHStack.wouldUnwindBeUB())
+      Attrs = Attrs.addFnAttribute(getLLVMContext(),
+                                   llvm::Attribute::AttrKind::NoUnwind);
   } else {
     llvm::BasicBlock *Cont = createBasicBlock("invoke.cont");
     CI = Builder.CreateInvoke(IRFuncTy, CalleePtr, Cont, InvokeDest, IRCallArgs,

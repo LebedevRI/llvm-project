@@ -1578,6 +1578,14 @@ def exception_model_EQ : Joined<["-"], "exception-model=">,
 def fignore_exceptions : Flag<["-"], "fignore-exceptions">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Enable support for ignoring exception handling constructs">,
   MarshallingInfoFlag<LangOpts<"IgnoreExceptions">>;
+defm strict_noexcept : BoolFOption<"strict-noexcept",
+  CodeGenOpts<"StrictNoexcept">, DefaultFalse,
+  PosFlag<SetTrue, [CC1Option], "Exception escape out of a function with noexcept "
+                                "exception specification is Undefined Behaviour.">,
+  NegFlag<SetFalse, [], "Exception escape out of a function with noexcept exception "
+                        "specification causes program termination, "
+                        "as mandated by the C++ language rules. (default)">,
+  BothFlags<[CoreOption]>>;
 def fexcess_precision_EQ : Joined<["-"], "fexcess-precision=">, Group<f_Group>,
   HelpText<"Allows control over excess precision on targets where native "
   "support for the precision types is not available. By default, excess "

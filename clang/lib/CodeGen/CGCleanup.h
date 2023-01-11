@@ -86,6 +86,13 @@ protected:
     unsigned CleanupSize : 12;
   };
 
+  class UBBitFields {
+    friend class EHUBScope;
+    unsigned : NumCommonBits;
+
+    unsigned IsSanitized : 32 - NumCommonBits;
+  };
+
   class FilterBitFields {
     friend class EHFilterScope;
     unsigned : NumCommonBits;
@@ -97,16 +104,18 @@ protected:
     CommonBitFields CommonBits;
     CatchBitFields CatchBits;
     CleanupBitFields CleanupBits;
+    UBBitFields UBBits;
     FilterBitFields FilterBits;
   };
 
 public:
-  enum Kind { Cleanup, Catch, Terminate, Filter };
+  enum Kind { Cleanup, Catch, Terminate, UB, Filter };
 
   EHScope(Kind kind, EHScopeStack::stable_iterator enclosingEHScope)
     : CachedLandingPad(nullptr), CachedEHDispatchBlock(nullptr),
       EnclosingEHScope(enclosingEHScope) {
     CommonBits.Kind = kind;
+    assert(CommonBits.Kind == kind && "Kind overflow?");
   }
 
   Kind getKind() const { return static_cast<Kind>(CommonBits.Kind); }
@@ -487,6 +496,22 @@ public:
   }
 };
 
+/// An exceptions scope which causes UB if any exception reaches it.
+class EHUBScope : public EHScope {
+public:
+  EHUBScope(bool isSanitized, EHScopeStack::stable_iterator enclosingEHScope)
+      : EHScope(UB, enclosingEHScope) {
+    UBBits.IsSanitized = isSanitized;
+    assert(UBBits.IsSanitized == isSanitized && "IsSanitized overflow?");
+  }
+
+  bool getIsSanitized() const { return UBBits.IsSanitized; }
+
+  static size_t getSize() { return sizeof(EHUBScope); }
+
+  static bool classof(const EHScope *scope) { return scope->getKind() == UB; }
+};
+
 /// A non-stable pointer into the scope stack.
 class EHScopeStack::iterator {
   char *Ptr;
@@ -523,6 +548,10 @@ public:
 
     case EHScope::Terminate:
       Size = EHTerminateScope::getSize();
+      break;
+
+    case EHScope::UB:
+      Size = EHUBScope::getSize();
       break;
     }
     Ptr += llvm::alignTo(Size, ScopeStackAlignment);
@@ -570,6 +599,14 @@ inline void EHScopeStack::popTerminate() {
   EHTerminateScope &scope = cast<EHTerminateScope>(*begin());
   InnermostEHScope = scope.getEnclosingEHScope();
   deallocate(EHTerminateScope::getSize());
+}
+
+inline void EHScopeStack::popUB() {
+  assert(!empty() && "popping exception stack when not empty");
+
+  EHUBScope &scope = cast<EHUBScope>(*begin());
+  InnermostEHScope = scope.getEnclosingEHScope();
+  deallocate(EHUBScope::getSize());
 }
 
 inline EHScopeStack::iterator EHScopeStack::find(stable_iterator sp) const {

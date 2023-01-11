@@ -504,6 +504,10 @@ CODEGENOPT(OpaquePointers, 1, 0)
 /// non-deleting destructors. (No effect on Microsoft ABI.)
 CODEGENOPT(CtorDtorReturnThis, 1, 0)
 
+/// When enabled, redefines exception escape out of an `noexcept` function
+/// from causing program termination to causing UB (default off).
+CODEGENOPT(StrictNoexcept, 1, 0)
+
 #undef CODEGENOPT
 #undef ENUM_CODEGENOPT
 #undef VALUE_CODEGENOPT

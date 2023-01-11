@@ -2382,6 +2382,9 @@ public:
   /// Emit a test that checks if the return value \p RV is nonnull.
   void EmitReturnValueCheck(llvm::Value *RV);
 
+  /// Internal to `EmitStartEHSpec()`/`EmitEndEHSpec()`, do not use directly.
+  bool ExceptionEscapeIsProgramTermination(const Decl *D, bool IsStart);
+
   /// EmitStartEHSpec - Emit the start of the exception spec.
   void EmitStartEHSpec(const Decl *D);
 

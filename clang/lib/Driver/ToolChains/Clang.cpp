@@ -371,6 +371,10 @@ static bool addExceptionArgs(const ArgList &Args, types::ID InputType,
       CmdArgs.push_back("-fcxx-exceptions");
 
       EH = true;
+
+      if (Args.hasFlag(options::OPT_fstrict_noexcept,
+                       options::OPT_fno_strict_noexcept, false))
+        CmdArgs.push_back("-fstrict-noexcept");
     }
   }
 

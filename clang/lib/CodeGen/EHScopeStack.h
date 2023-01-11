@@ -342,6 +342,12 @@ public:
   /// Pops a terminate handler off the stack.
   void popTerminate();
 
+  /// Push a UB handler on the stack.
+  void pushUB(bool isSanitized);
+
+  /// Pops a UB handler off the stack.
+  void popUB();
+
   // Returns true iff the current scope is either empty or contains only
   // lifetime markers, i.e. no real cleanup code
   bool containsOnlyLifetimeMarkers(stable_iterator Old) const;
@@ -349,6 +355,12 @@ public:
   /// Determines whether the exception-scopes stack is empty.
   bool empty() const { return StartOfData == EndOfBuffer; }
 
+  /// An unstable reference to a scope-stack depth.  Invalidated by
+  /// pushes but not pops.
+  class iterator;
+
+  EHScopeStack::iterator getInnermostEHScopeForUnwind() const;
+  bool wouldUnwindBeUB() const;
   bool requiresLandingPad() const;
 
   /// Determines whether there are any normal cleanups on the stack.
@@ -366,11 +378,6 @@ public:
   stable_iterator getInnermostEHScope() const {
     return InnermostEHScope;
   }
-
-
-  /// An unstable reference to a scope-stack depth.  Invalidated by
-  /// pushes but not pops.
-  class iterator;
 
   /// Returns an iterator pointing to the innermost EH scope.
   iterator begin() const;
