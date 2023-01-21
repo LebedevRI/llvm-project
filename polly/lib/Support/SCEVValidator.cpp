@@ -348,6 +348,11 @@ public:
     return ValidatorResult(SCEVType::PARAM, Expr);
   }
 
+  ValidatorResult visitSelectExpr(const SCEVSelectExpr *Expr) {
+    // FIXME: what do we want to happen here?
+    return ValidatorResult(SCEVType::INVALID);
+  }
+
   ValidatorResult visitGenericInst(Instruction *I, const SCEV *S) {
     if (R->contains(I)) {
       LLVM_DEBUG(dbgs() << "INVALID: UnknownExpr references an instruction "

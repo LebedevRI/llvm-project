@@ -29,7 +29,7 @@ define dso_local i32 @f() {
 ; CHECK-NEXT:    %storemerge1822.lcssa.ph32 = phi i32 [ 3, %inner.loop ]
 ; CHECK-NEXT:    --> 3 U: [3,4) S: [3,4)
 ; CHECK-NEXT:    %storemerge1822.lcssa = phi i32 [ %storemerge1822.lcssa.ph, %if.end.loopexit ], [ %storemerge1822.lcssa.ph32, %if.end.loopexit31 ]
-; CHECK-NEXT:    --> %storemerge1822.lcssa U: [0,4) S: [0,4)
+; CHECK-NEXT:    --> (select %tobool8, 0, 3) U: [0,4) S: [0,4)
 ; CHECK-NEXT:    %i1 = load i32, ptr @e, align 4
 ; CHECK-NEXT:    --> %i1 U: full-set S: full-set
 ; CHECK-NEXT:    %i2 = load volatile i32, ptr @b, align 4

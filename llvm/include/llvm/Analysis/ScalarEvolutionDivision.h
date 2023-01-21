@@ -43,6 +43,7 @@ public:
   void visitSMinExpr(const SCEVSMinExpr *Numerator) {}
   void visitUMinExpr(const SCEVUMinExpr *Numerator) {}
   void visitSequentialUMinExpr(const SCEVSequentialUMinExpr *Numerator) {}
+  void visitSelectExpr(const SCEVSelectExpr *Numerator) {} // FIXME: trivial.
   void visitUnknown(const SCEVUnknown *Numerator) {}
   void visitCouldNotCompute(const SCEVCouldNotCompute *Numerator) {}
 

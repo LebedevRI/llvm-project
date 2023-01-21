@@ -5,7 +5,7 @@ define ptr @pointer_select_two_objects(i1 %cond, ptr %first_obj, ptr %second_obj
 ; CHECK-LABEL: 'pointer_select_two_objects'
 ; CHECK-NEXT:  Classifying expressions for: @pointer_select_two_objects
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %first_obj, ptr %second_obj
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, %first_obj, %second_obj) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_two_objects
 ;
   %r = select i1 %cond, ptr %first_obj, ptr %second_obj
@@ -22,7 +22,7 @@ define ptr @pointer_select_same_object_constant_offsets(i1 %cond, ptr %obj) {
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 24
 ; CHECK-NEXT:    --> (24 + %obj) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (42 + %obj), (24 + %obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_constant_offsets
 ;
   %true_ptr = getelementptr i8, ptr %obj, i64 42
@@ -39,7 +39,7 @@ define ptr @pointer_select_same_object_variable_offsets(i1 %cond, ptr %obj, i64 
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (%false_off + %obj) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (%true_off + %obj), (%false_off + %obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_variable_offsets
 ;
   %true_ptr = getelementptr i8, ptr %obj, i64 %true_off
@@ -56,7 +56,7 @@ define ptr @pointer_select_same_object_constant_offset_vs_variable_offset(i1 %co
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (%false_off + %obj) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (42 + %obj), (%false_off + %obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_constant_offset_vs_variable_offset
 ;
   %true_ptr = getelementptr i8, ptr %obj, i64 42
@@ -73,7 +73,7 @@ define ptr @pointer_select_same_object_variable_offset_vs_constant_offset(i1 %co
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 42
 ; CHECK-NEXT:    --> (42 + %obj) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (%true_off + %obj), (42 + %obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_variable_offset_vs_constant_offset
 ;
   %true_ptr = getelementptr i8, ptr %obj, i64 %true_off
@@ -94,7 +94,7 @@ define ptr @pointer_select_same_object_with_constant_base_offset__constant_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 24
 ; CHECK-NEXT:    --> (36 + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (54 + %obj.base), (36 + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_constant_base_offset__constant_offsets
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 12
@@ -114,7 +114,7 @@ define ptr @pointer_select_same_object_with_constant_base_offset__variable_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (12 + %false_off + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (12 + %true_off + %obj.base), (12 + %false_off + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_constant_base_offset__variable_offsets
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 12
@@ -134,7 +134,7 @@ define ptr @pointer_select_same_object_with_constant_base_offset__constant_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (12 + %false_off + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (54 + %obj.base), (12 + %false_off + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_constant_base_offset__constant_offset_vs_variable_offset
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 12
@@ -154,7 +154,7 @@ define ptr @pointer_select_same_object_with_constant_base_offset__variable_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 42
 ; CHECK-NEXT:    --> (54 + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (12 + %true_off + %obj.base), (54 + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_constant_base_offset__variable_offset_vs_constant_offset
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 12
@@ -176,7 +176,7 @@ define ptr @pointer_select_same_object_with_variable_base_offset__constant_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 24
 ; CHECK-NEXT:    --> (24 + %base_offset + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (42 + %base_offset + %obj.base), (24 + %base_offset + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_variable_base_offset__constant_offsets
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 %base_offset
@@ -196,7 +196,7 @@ define ptr @pointer_select_same_object_with_variable_base_offset__variable_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (%base_offset + %false_off + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (%base_offset + %true_off + %obj.base), (%base_offset + %false_off + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_variable_base_offset__variable_offsets
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 %base_offset
@@ -216,7 +216,7 @@ define ptr @pointer_select_same_object_with_variable_base_offset__constant_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 %false_off
 ; CHECK-NEXT:    --> (%base_offset + %false_off + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (42 + %base_offset + %obj.base), (%base_offset + %false_off + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_variable_base_offset__constant_offset_vs_variable_offset
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 %base_offset
@@ -236,7 +236,7 @@ define ptr @pointer_select_same_object_with_variable_base_offset__variable_offse
 ; CHECK-NEXT:    %false_ptr = getelementptr i8, ptr %obj, i64 42
 ; CHECK-NEXT:    --> (42 + %base_offset + %obj.base) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %cond, ptr %true_ptr, ptr %false_ptr
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cond, (%base_offset + %true_off + %obj.base), (42 + %base_offset + %obj.base)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_select_same_object_with_variable_base_offset__variable_offset_vs_constant_offset
 ;
   %obj = getelementptr i8, ptr %obj.base, i64 %base_offset

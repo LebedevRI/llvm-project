@@ -366,6 +366,17 @@ void SCEV::print(raw_ostream &OS) const {
     OS << "(" << *UDiv->getLHS() << " /u " << *UDiv->getRHS() << ")";
     return;
   }
+
+  case scSelectExpr: {
+    const SCEVSelectExpr *Sel = cast<SCEVSelectExpr>(this);
+    OS << "(select ";
+    ListSeparator LS(", ");
+    for (const SCEV *Op : Sel->operands())
+      OS << LS << *Op;
+    OS << ")";
+    return;
+  }
+
   case scUnknown: {
     const SCEVUnknown *U = cast<SCEVUnknown>(this);
     Type *AllocTy;
@@ -422,6 +433,8 @@ Type *SCEV::getType() const {
     return cast<SCEVAddExpr>(this)->getType();
   case scUDivExpr:
     return cast<SCEVUDivExpr>(this)->getType();
+  case scSelectExpr:
+    return cast<SCEVSelectExpr>(this)->getType();
   case scUnknown:
     return cast<SCEVUnknown>(this)->getType();
   case scCouldNotCompute:
@@ -451,6 +464,8 @@ ArrayRef<const SCEV *> SCEV::operands() const {
     return cast<SCEVNAryExpr>(this)->operands();
   case scUDivExpr:
     return cast<SCEVUDivExpr>(this)->operands();
+  case scSelectExpr:
+    return cast<SCEVSelectExpr>(this)->operands();
   case scCouldNotCompute:
     llvm_unreachable("Attempt to use a SCEVCouldNotCompute object!");
   }
@@ -818,7 +833,8 @@ CompareSCEVComplexity(EquivalenceClasses<const SCEV *> &EqCacheSCEV,
   case scUMaxExpr:
   case scSMinExpr:
   case scUMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     ArrayRef<const SCEV *> LOps = LHS->operands();
     ArrayRef<const SCEV *> ROps = RHS->operands();
 
@@ -4087,6 +4103,8 @@ public:
     return visitAnyMinMaxExpr(Expr);
   }
 
+  RetVal visitSelectExpr(const SCEVSelectExpr *Expr) { return Expr; }
+
   RetVal visitUnknown(const SCEVUnknown *Expr) { return Expr; }
 
   RetVal visitCouldNotCompute(const SCEVCouldNotCompute *Expr) { return Expr; }
@@ -4115,6 +4133,10 @@ static bool scevUnconditionallyPropagatesPoisonFromOperands(SCEVTypes Kind) {
   case scSequentialUMinExpr:
     // FIXME: if the *first* operand is poison, the whole expression is poison.
     return false; // Pessimistically, say that it does not propagate poison.
+  case scSelectExpr:
+    // FIXME: if the condition is poison, the whole expression is poison.
+    // FIXME: if both hands of the select are poison, the whole expr is poison.
+    return false; // `select` requires special treatment.
   case scCouldNotCompute:
     llvm_unreachable("Attempt to use a SCEVCouldNotCompute object!");
   }
@@ -4130,11 +4152,12 @@ static bool impliesPoison(const SCEV *AssumedPoison, const SCEV *S) {
   //
   // Additionally, all SCEV nodes propagate poison from inputs to outputs,
   // with the notable exception of umin_seq, where only poison from the first
-  // operand is (unconditionally) propagated.
+  // operand is (unconditionally) propagated, and select.
   struct SCEVPoisonCollector {
-    bool LookThroughSeq;
+    bool LookThroughPoisonBlocking;
     SmallPtrSet<const SCEV *, 4> MaybePoison;
-    SCEVPoisonCollector(bool LookThroughSeq) : LookThroughSeq(LookThroughSeq) {}
+    SCEVPoisonCollector(bool LookThroughPoisonBlocking)
+        : LookThroughPoisonBlocking(LookThroughPoisonBlocking) {}
 
     bool follow(const SCEV *S) {
       if (!scevUnconditionallyPropagatesPoisonFromOperands(S->getSCEVType())) {
@@ -4157,7 +4180,14 @@ static bool impliesPoison(const SCEV *AssumedPoison, const SCEV *S) {
         case scSequentialUMinExpr:
           // TODO: We can always follow the first operand,
           // but the SCEVTraversal API doesn't support this.
-          if (!LookThroughSeq)
+          if (!LookThroughPoisonBlocking)
+            return false;
+          break;
+        case scSelectExpr:
+          // TODO: We can always follow the condition,
+          //       but the SCEVTraversal API doesn't support this.
+          // TODO: we could intersect the poison-ness of the `select`'s hands.
+          if (!LookThroughPoisonBlocking)
             return false;
           break;
         case scCouldNotCompute:
@@ -4177,7 +4207,7 @@ static bool impliesPoison(const SCEV *AssumedPoison, const SCEV *S) {
   // First collect all SCEVs that might result in AssumedPoison to be poison.
   // We need to look through umin_seq here, because we want to find all SCEVs
   // that *might* result in poison, not only those that are *required* to.
-  SCEVPoisonCollector PC1(/* LookThroughSeq */ true);
+  SCEVPoisonCollector PC1(/* LookThroughPoisonBlocking= */ true);
   visitAll(AssumedPoison, PC1);
 
   // AssumedPoison is never poison. As the assumption is false, the implication
@@ -4188,7 +4218,7 @@ static bool impliesPoison(const SCEV *AssumedPoison, const SCEV *S) {
   // Collect all SCEVs in S that, if poison, *will* result in S being poison
   // as well. We cannot look through umin_seq here, as its argument only *may*
   // make the result poison.
-  SCEVPoisonCollector PC2(/* LookThroughSeq */ false);
+  SCEVPoisonCollector PC2(/* LookThroughPoisonBlocking= */ false);
   visitAll(S, PC2);
 
   // Make sure that no matter which SCEV in PC1.MaybePoison is actually poison,
@@ -4287,6 +4317,8 @@ ScalarEvolution::getSequentialMinMaxExpr(SCEVTypes Kind,
     }
   }
 
+  // FIXME: for i1-typed sequential min/max's, canonicalize to select.
+
   // Okay, it looks like we really DO need an expr.  Check to see if we
   // already have one, otherwise create a new one.
   FoldingSetNodeID ID;
@@ -4346,6 +4378,50 @@ const SCEV *ScalarEvolution::getUMinExpr(SmallVectorImpl<const SCEV *> &Ops,
                                          bool Sequential) {
   return Sequential ? getSequentialMinMaxExpr(scSequentialUMinExpr, Ops)
                     : getMinMaxExpr(scUMinExpr, Ops);
+}
+
+const SCEV *ScalarEvolution::getSelectExpr(ArrayRef<const SCEV *> Ops) {
+  static constexpr SCEVTypes Kind = scSelectExpr;
+
+  assert(Ops.size() == 3 && "Unexpected operand count to the select!");
+  assert(Ops[0]->getType()->isIntegerTy(1) && "First operand must be bool!");
+  assert(Ops[1]->getType()->isPointerTy() == Ops[2]->getType()->isPointerTy() &&
+         getEffectiveSCEVType(Ops[1]->getType()) ==
+             getEffectiveSCEVType(Ops[2]->getType()) &&
+         "Types of select's hands do not match!");
+
+  // Check if we have created the same expression before.
+  if (const SCEV *S = findExistingSCEVInCache(Kind, Ops))
+    return S;
+
+  // FIXME: perform simplifications.
+  // FIXME: perform `createNonSelectNodeForSelectOrPHIInstWithICmpInstCond()`
+  // here?
+
+  // If both hands of select are identical, just return one of them.
+  if (Ops[1] == Ops[2])
+    return Ops[1];
+
+  // Have we succeeded in constant-folding the condition?
+  if (auto *CondConst = dyn_cast<SCEVConstant>(Ops[0]))
+    return CondConst->isOne() ? Ops[1] : Ops[2];
+
+  // Okay, it looks like we really DO need an expr.  Check to see if we
+  // already have one, otherwise create a new one.
+  FoldingSetNodeID ID;
+  ID.AddInteger(Kind);
+  for (const SCEV *Op : Ops)
+    ID.AddPointer(Op);
+  void *IP = nullptr;
+  const SCEV *ExistingSCEV = UniqueSCEVs.FindNodeOrInsertPos(ID, IP);
+  if (ExistingSCEV)
+    return ExistingSCEV;
+
+  SCEV *S = new (SCEVAllocator) SCEVSelectExpr(ID.Intern(SCEVAllocator), Ops);
+
+  UniqueSCEVs.InsertNode(S, IP);
+  registerUser(S, Ops);
+  return S;
 }
 
 const SCEV *
@@ -5941,6 +6017,7 @@ static bool IsAvailableOnEntry(const Loop *L, DominatorTree &DT, const SCEV *S,
       case scUMinExpr:
       case scSMinExpr:
       case scSequentialUMinExpr:
+      case scSelectExpr:
         // These expressions are available if their operand(s) is/are.
         return true;
 
@@ -6111,11 +6188,10 @@ bool SCEVMinMaxExprContains(const SCEV *Root, const SCEV *OperandToFind,
   return FC.Found;
 }
 
-std::optional<const SCEV *>
-ScalarEvolution::createNodeForSelectOrPHIInstWithICmpInstCond(Type *Ty,
-                                                              ICmpInst *Cond,
-                                                              Value *TrueVal,
-                                                              Value *FalseVal) {
+// FIXME: this should be done in `ScalarEvolution::getSelectExpr()`.
+const std::optional<const SCEV *>
+ScalarEvolution::createNonSelectNodeForSelectOrPHIInstWithICmpInstCond(
+    Type *Ty, ICmpInst *Cond, Value *TrueVal, Value *FalseVal) {
   // Try to match some simple smax or umax patterns.
   auto *ICI = Cond;
 
@@ -6218,69 +6294,6 @@ ScalarEvolution::createNodeForSelectOrPHIInstWithICmpInstCond(Type *Ty,
   return std::nullopt;
 }
 
-static std::optional<const SCEV *>
-createNodeForSelectViaUMinSeq(ScalarEvolution *SE, const SCEV *CondExpr,
-                              const SCEV *TrueExpr, const SCEV *FalseExpr) {
-  assert(CondExpr->getType()->isIntegerTy(1) &&
-         TrueExpr->getType() == FalseExpr->getType() &&
-         TrueExpr->getType()->isIntegerTy(1) &&
-         "Unexpected operands of a select.");
-
-  // i1 cond ? i1 x : i1 C  -->  C + (i1  cond ? (i1 x - i1 C) : i1 0)
-  //                        -->  C + (umin_seq  cond, x - C)
-  //
-  // i1 cond ? i1 C : i1 x  -->  C + (i1  cond ? i1 0 : (i1 x - i1 C))
-  //                        -->  C + (i1 ~cond ? (i1 x - i1 C) : i1 0)
-  //                        -->  C + (umin_seq ~cond, x - C)
-
-  // FIXME: while we can't legally model the case where both of the hands
-  // are fully variable, we only require that the *difference* is constant.
-  if (!isa<SCEVConstant>(TrueExpr) && !isa<SCEVConstant>(FalseExpr))
-    return std::nullopt;
-
-  const SCEV *X, *C;
-  if (isa<SCEVConstant>(TrueExpr)) {
-    CondExpr = SE->getNotSCEV(CondExpr);
-    X = FalseExpr;
-    C = TrueExpr;
-  } else {
-    X = TrueExpr;
-    C = FalseExpr;
-  }
-  return SE->getAddExpr(C, SE->getUMinExpr(CondExpr, SE->getMinusSCEV(X, C),
-                                           /*Sequential=*/true));
-}
-
-static std::optional<const SCEV *>
-createNodeForSelectViaUMinSeq(ScalarEvolution *SE, Value *Cond, Value *TrueVal,
-                              Value *FalseVal) {
-  if (!isa<ConstantInt>(TrueVal) && !isa<ConstantInt>(FalseVal))
-    return std::nullopt;
-
-  const auto *SECond = SE->getSCEV(Cond);
-  const auto *SETrue = SE->getSCEV(TrueVal);
-  const auto *SEFalse = SE->getSCEV(FalseVal);
-  return createNodeForSelectViaUMinSeq(SE, SECond, SETrue, SEFalse);
-}
-
-const SCEV *ScalarEvolution::createNodeForSelectOrPHIViaUMinSeq(
-    Value *V, Value *Cond, Value *TrueVal, Value *FalseVal) {
-  assert(Cond->getType()->isIntegerTy(1) && "Select condition is not an i1?");
-  assert(TrueVal->getType() == FalseVal->getType() &&
-         V->getType() == TrueVal->getType() &&
-         "Types of select hands and of the result must match.");
-
-  // For now, only deal with i1-typed `select`s.
-  if (!V->getType()->isIntegerTy(1))
-    return getUnknown(V);
-
-  if (std::optional<const SCEV *> S =
-          createNodeForSelectViaUMinSeq(this, Cond, TrueVal, FalseVal))
-    return *S;
-
-  return getUnknown(V);
-}
-
 const SCEV *ScalarEvolution::createNodeForSelectOrPHI(Value *V, Value *Cond,
                                                       Value *TrueVal,
                                                       Value *FalseVal) {
@@ -6292,13 +6305,13 @@ const SCEV *ScalarEvolution::createNodeForSelectOrPHI(Value *V, Value *Cond,
   if (auto *I = dyn_cast<Instruction>(V)) {
     if (auto *ICI = dyn_cast<ICmpInst>(Cond)) {
       if (std::optional<const SCEV *> S =
-              createNodeForSelectOrPHIInstWithICmpInstCond(I->getType(), ICI,
-                                                           TrueVal, FalseVal))
+              createNonSelectNodeForSelectOrPHIInstWithICmpInstCond(
+                  I->getType(), ICI, TrueVal, FalseVal))
         return *S;
     }
   }
 
-  return createNodeForSelectOrPHIViaUMinSeq(V, Cond, TrueVal, FalseVal);
+  return getSelectExpr({getSCEV(Cond), getSCEV(TrueVal), getSCEV(FalseVal)});
 }
 
 /// Expand GEP instructions into add and multiply operations. This allows them
@@ -6356,9 +6369,12 @@ uint32_t ScalarEvolution::GetMinTrailingZerosImpl(const SCEV *S) {
   case scSMaxExpr:
   case scUMinExpr:
   case scSMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     // The result is the min of all operands results.
     ArrayRef<const SCEV *> Ops = S->operands();
+    if (S->getSCEVType() == scSelectExpr)
+      Ops = Ops.drop_front(); // Ignore condition of the `select`.
     uint32_t MinOpRes = GetMinTrailingZeros(Ops[0]);
     for (unsigned I = 1, E = Ops.size(); MinOpRes && I != E; ++I)
       MinOpRes = std::min(MinOpRes, GetMinTrailingZeros(Ops[I]));
@@ -6560,6 +6576,7 @@ ScalarEvolution::getRangeRefIter(const SCEV *S,
     case scUMinExpr:
     case scSMinExpr:
     case scSequentialUMinExpr:
+    case scSelectExpr:
       WorkList.push_back(Expr);
       break;
     case scCouldNotCompute:
@@ -6574,7 +6591,10 @@ ScalarEvolution::getRangeRefIter(const SCEV *S,
     auto *UnknownS = dyn_cast<SCEVUnknown>(P);
     // If it is not a `SCEVUnknown`, just recurse into operands.
     if (!UnknownS) {
-      for (const SCEV *Op : P->operands())
+      ArrayRef<const SCEV *> Ops = P->operands();
+      if (P->getSCEVType() == scSelectExpr)
+        Ops = Ops.drop_front(); // Ignore condition of the `select`.
+      for (const SCEV *Op : Ops)
         AddToWorklist(Op);
       continue;
     }
@@ -6810,6 +6830,14 @@ const ConstantRange &ScalarEvolution::getRangeRef(
           ID, {X, getRangeRef(NAry->getOperand(i), SignHint, Depth + 1)});
     return setRange(S, SignHint,
                     ConservativeResult.intersectWith(X, RangeType));
+  }
+  case scSelectExpr: {
+    const SCEVSelectExpr *Sel = cast<SCEVSelectExpr>(S);
+    ConstantRange T = getRangeRef(Sel->getTrueValue(), SignHint, Depth + 1);
+    ConstantRange F = getRangeRef(Sel->getFalseValue(), SignHint, Depth + 1);
+    return setRange(
+        Sel, SignHint,
+        ConservativeResult.intersectWith(T.unionWith(F), RangeType));
   }
   case scUnknown: {
     const SCEVUnknown *U = cast<SCEVUnknown>(S);
@@ -7072,7 +7100,7 @@ ConstantRange ScalarEvolution::getRangeViaFactoring(const SCEV *Start,
   // == RangeOf({A,+,P}) union RangeOf({B,+,Q})
 
   struct SelectPattern {
-    Value *Condition = nullptr;
+    const SCEV *Condition = nullptr;
     APInt TrueValue;
     APInt FalseValue;
 
@@ -7103,17 +7131,20 @@ ConstantRange ScalarEvolution::getRangeViaFactoring(const SCEV *Start,
 
       using namespace llvm::PatternMatch;
 
-      auto *SU = dyn_cast<SCEVUnknown>(S);
-      const APInt *TrueVal, *FalseVal;
-      if (!SU ||
-          !match(SU->getValue(), m_Select(m_Value(Condition), m_APInt(TrueVal),
-                                          m_APInt(FalseVal)))) {
+      auto *SelExpr = dyn_cast<SCEVSelectExpr>(S);
+      const SCEVConstant *TrueConst = nullptr, *FalseConst = nullptr;
+      if (SelExpr) {
+        Condition = SelExpr->getCondition();
+        TrueConst = dyn_cast<SCEVConstant>(SelExpr->getTrueValue());
+        FalseConst = dyn_cast<SCEVConstant>(SelExpr->getFalseValue());
+      }
+      if (!TrueConst || !FalseConst) {
         Condition = nullptr;
         return;
       }
 
-      TrueValue = *TrueVal;
-      FalseValue = *FalseVal;
+      TrueValue = TrueConst->getAPInt();
+      FalseValue = FalseConst->getAPInt();
 
       // Re-apply the cast we peeled off earlier
       if (CastOp)
@@ -9834,6 +9865,17 @@ static Constant *BuildConstantFromSCEV(const SCEV *V) {
     }
     return C;
   }
+  case scSelectExpr: {
+    const SCEVSelectExpr *S = cast<SCEVSelectExpr>(V);
+    std::array<Constant *, 3> CstOps;
+    for (auto I : zip(S->operands(), CstOps)) {
+      Constant *&CstOp = std::get<1>(I);
+      CstOp = BuildConstantFromSCEV(std::get<0>(I));
+      if (!CstOp)
+        return nullptr;
+    }
+    return ConstantExpr::getSelect(CstOps[0], CstOps[1], CstOps[2]);
+  }
   case scUDivExpr:
   case scSMaxExpr:
   case scUMaxExpr:
@@ -9907,7 +9949,8 @@ const SCEV *ScalarEvolution::computeSCEVAtScope(const SCEV *V, const Loop *L) {
   case scSMaxExpr:
   case scUMinExpr:
   case scSMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     ArrayRef<const SCEV *> Ops = V->operands();
     // Avoid performing the look-up in the common case where the specified
     // expression has no loop-variant portions.
@@ -9945,6 +9988,8 @@ const SCEV *ScalarEvolution::computeSCEVAtScope(const SCEV *V, const Loop *L) {
           return getMinMaxExpr(V->getSCEVType(), NewOps);
         case scSequentialUMinExpr:
           return getSequentialMinMaxExpr(V->getSCEVType(), NewOps);
+        case scSelectExpr:
+          return getSelectExpr(NewOps);
         case scConstant:
         case scAddRecExpr:
         case scUnknown:
@@ -13773,7 +13818,8 @@ ScalarEvolution::computeLoopDisposition(const SCEV *S, const Loop *L) {
   case scSMaxExpr:
   case scUMinExpr:
   case scSMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     bool HasVarying = false;
     for (const auto *Op : S->operands()) {
       LoopDisposition D = getLoopDisposition(Op, L);
@@ -13853,10 +13899,11 @@ ScalarEvolution::computeBlockDisposition(const SCEV *S, const BasicBlock *BB) {
   case scSMaxExpr:
   case scUMinExpr:
   case scSMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     bool Proper = true;
-    for (const SCEV *NAryOp : S->operands()) {
-      BlockDisposition D = getBlockDisposition(NAryOp, BB);
+    for (const SCEV *SOp : S->operands()) {
+      BlockDisposition D = getBlockDisposition(SOp, BB);
       if (D == DoesNotDominateBlock)
         return DoesNotDominateBlock;
       if (D == DominatesBlock)

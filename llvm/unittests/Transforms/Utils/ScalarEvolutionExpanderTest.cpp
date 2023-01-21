@@ -117,8 +117,20 @@ TEST_F(ScalarEvolutionExpanderTest, ExpandPtrTypeSCEV) {
       CastInst::CreateBitOrPointerCast(Sel, I32PtrTy, "bitcast2", Br);
 
   ScalarEvolution SE = buildSE(*F);
-  auto *S = SE.getSCEV(CastB);
-  EXPECT_TRUE(isa<SCEVUnknown>(S));
+  auto *TrueS = SE.getSCEV(CastB);
+
+  // (select %cmp, (5 + %alloca), (1 + undef))
+  auto *ExpectedS = SE.getSelectExpr({
+      SE.getSCEV(Cmp),
+      SE.getAddExpr(
+          SE.getSCEV(Alloca),
+          SE.getConstant(SE.getEffectiveSCEVType(Alloca->getType()), 5)),
+      SE.getAddExpr(
+          SE.getSCEV(UndefValue::get(I8PtrTy)),
+          SE.getConstant(SE.getEffectiveSCEVType(Alloca->getType()), 1)),
+  });
+
+  EXPECT_EQ(ExpectedS, TrueS);
 }
 
 // Make sure that SCEV doesn't introduce illegal ptrtoint/inttoptr instructions

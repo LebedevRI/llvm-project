@@ -125,7 +125,7 @@ define i1 @logical_or(i1 %x, i1 %y) {
 ; CHECK-LABEL: 'logical_or'
 ; CHECK-NEXT:  Classifying expressions for: @logical_or
 ; CHECK-NEXT:    %r = select i1 %x, i1 true, i1 %y
-; CHECK-NEXT:    --> (true + ((true + %x) umin_seq (true + %y))) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x, true, %y) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @logical_or
 ;
   %r = select i1 %x, i1 true, i1 %y
@@ -136,7 +136,7 @@ define i1 @logical_and(i1 %x, i1 %y) {
 ; CHECK-LABEL: 'logical_and'
 ; CHECK-NEXT:  Classifying expressions for: @logical_and
 ; CHECK-NEXT:    %r = select i1 %x, i1 %y, i1 false
-; CHECK-NEXT:    --> (%x umin_seq %y) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x, %y, false) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @logical_and
 ;
   %r = select i1 %x, i1 %y, i1 false
@@ -147,7 +147,7 @@ define i1 @select_x_or_false(i1 %c, i1 %x) {
 ; CHECK-LABEL: 'select_x_or_false'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_false
 ; CHECK-NEXT:    %r = select i1 %c, i1 %x, i1 false
-; CHECK-NEXT:    --> (%c umin_seq %x) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, false) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_false
 ;
   %r = select i1 %c, i1 %x, i1 false
@@ -158,7 +158,7 @@ define i1 @select_false_or_x(i1 %c, i1 %x) {
 ; CHECK-LABEL: 'select_false_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_false_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i1 false, i1 %x
-; CHECK-NEXT:    --> ((true + %c) umin_seq %x) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, false, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_false_or_x
 ;
   %r = select i1 %c, i1 false, i1 %x
@@ -169,7 +169,7 @@ define i1 @select_x_or_true(i1 %c, i1 %x) {
 ; CHECK-LABEL: 'select_x_or_true'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_true
 ; CHECK-NEXT:    %r = select i1 %c, i1 %x, i1 true
-; CHECK-NEXT:    --> (true + (%c umin_seq (true + %x))) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, true) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_true
 ;
   %r = select i1 %c, i1 %x, i1 true
@@ -180,7 +180,7 @@ define i1 @select_true_or_x(i1 %c, i1 %x) {
 ; CHECK-LABEL: 'select_true_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_true_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i1 true, i1 %x
-; CHECK-NEXT:    --> (true + ((true + %c) umin_seq (true + %x))) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, true, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_true_or_x
 ;
   %r = select i1 %c, i1 true, i1 %x
@@ -191,7 +191,7 @@ define i32 @select_x_or_zero(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_zero'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_zero
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 0
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, 0) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_zero
 ;
   %r = select i1 %c, i32 %x, i32 0
@@ -202,7 +202,7 @@ define i32 @select_zero_or_x(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_zero_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_zero_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 0, i32 %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, 0, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_zero_or_x
 ;
   %r = select i1 %c, i32 0, i32 %x
@@ -213,7 +213,7 @@ define i32 @select_x_or_allones(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_allones'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_allones
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 -1
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, -1) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_allones
 ;
   %r = select i1 %c, i32 %x, i32 -1
@@ -224,7 +224,7 @@ define i32 @select_allones_or_x(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_allones_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_allones_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 -1, i32 %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, -1, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_allones_or_x
 ;
   %r = select i1 %c, i32 -1, i32 %x
@@ -235,7 +235,7 @@ define i32 @select_x_or_intmax(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_intmax'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_intmax
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 2147483647
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, 2147483647) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_intmax
 ;
   %r = select i1 %c, i32 %x, i32 2147483647
@@ -246,7 +246,7 @@ define i32 @select_intmax_or_x(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_intmax_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_intmax_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 2147483647, i32 %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, 2147483647, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_intmax_or_x
 ;
   %r = select i1 %c, i32 2147483647, i32 %x
@@ -257,7 +257,7 @@ define i32 @select_x_or_intmin(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_intmin'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_intmin
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 -2147483648
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, -2147483648) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_intmin
 ;
   %r = select i1 %c, i32 %x, i32 -2147483648
@@ -268,7 +268,7 @@ define i32 @select_intmin_or_x(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_intmin_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_intmin_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 -2147483648, i32 %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, -2147483648, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_intmin_or_x
 ;
   %r = select i1 %c, i32 -2147483648, i32 %x
@@ -279,7 +279,7 @@ define i32 @select_x_or_constant(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_constant'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_constant
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 42
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, 42) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_constant
 ;
   %r = select i1 %c, i32 %x, i32 42
@@ -290,7 +290,7 @@ define i32 @select_constant_or_x(i1 %c, i32 %y) {
 ; CHECK-LABEL: 'select_constant_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_constant_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 42, i32 %y
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, 42, %y) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_constant_or_x
 ;
   %r = select i1 %c, i32 42, i32 %y
@@ -301,7 +301,7 @@ define i32 @select_between_constants(i1 %c, i32 %y) {
 ; CHECK-LABEL: 'select_between_constants'
 ; CHECK-NEXT:  Classifying expressions for: @select_between_constants
 ; CHECK-NEXT:    %r = select i1 %c, i32 42, i32 24
-; CHECK-NEXT:    --> %r U: [8,59) S: [8,59)
+; CHECK-NEXT:    --> (select %c, 42, 24) U: [24,43) S: [24,43)
 ; CHECK-NEXT:  Determining loop execution counts for: @select_between_constants
 ;
   %r = select i1 %c, i32 42, i32 24
@@ -312,7 +312,7 @@ define i32 @select_x_or_y(i1 %c, i32 %x, i32 %y) {
 ; CHECK-LABEL: 'select_x_or_y'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_y
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 %y
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, %y) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_y
 ;
   %r = select i1 %c, i32 %x, i32 %y
@@ -323,7 +323,7 @@ define i32 @select_x_or_y__noundef(i1 %c, i32 noundef %x, i32 noundef %y) {
 ; CHECK-LABEL: 'select_x_or_y__noundef'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_y__noundef
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 %y
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, %y) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_y__noundef
 ;
   %r = select i1 %c, i32 %x, i32 %y
@@ -334,7 +334,7 @@ define i32 @select_x_or_constantexpr(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_x_or_constantexpr'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_constantexpr
 ; CHECK-NEXT:    %r = select i1 %c, i32 %x, i32 ptrtoint (ptr @constant to i32)
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, (trunc i64 (ptrtoint ptr @constant to i64) to i32)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_constantexpr
 ;
   %r = select i1 %c, i32 %x, i32 ptrtoint (ptr @constant to i32)
@@ -345,7 +345,7 @@ define i32 @select_constantexpr_or_x(i1 %c, i32 %x) {
 ; CHECK-LABEL: 'select_constantexpr_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_constantexpr_or_x
 ; CHECK-NEXT:    %r = select i1 %c, i32 ptrtoint (ptr @constant to i32), i32 %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, (trunc i64 (ptrtoint ptr @constant to i64) to i32), %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_constantexpr_or_x
 ;
   %r = select i1 %c, i32 ptrtoint (ptr @constant to i32), i32 %x
@@ -356,7 +356,7 @@ define ptr @select_x_or_nullptr(i1 %c, ptr %x) {
 ; CHECK-LABEL: 'select_x_or_nullptr'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_nullptr
 ; CHECK-NEXT:    %r = select i1 %c, ptr %x, ptr null
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, null) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_nullptr
 ;
   %r = select i1 %c, ptr %x, ptr null
@@ -367,7 +367,7 @@ define ptr @select_null_or_x(i1 %c, ptr %x) {
 ; CHECK-LABEL: 'select_null_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_null_or_x
 ; CHECK-NEXT:    %r = select i1 %c, ptr null, ptr %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, null, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_null_or_x
 ;
   %r = select i1 %c, ptr null, ptr %x
@@ -378,7 +378,7 @@ define ptr @select_x_or_constantptr(i1 %c, ptr %x) {
 ; CHECK-LABEL: 'select_x_or_constantptr'
 ; CHECK-NEXT:  Classifying expressions for: @select_x_or_constantptr
 ; CHECK-NEXT:    %r = select i1 %c, ptr %x, ptr @constant
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, %x, @constant) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_x_or_constantptr
 ;
   %r = select i1 %c, ptr %x, ptr @constant
@@ -389,7 +389,7 @@ define ptr @select_constantptr_or_x(i1 %c, ptr %x) {
 ; CHECK-LABEL: 'select_constantptr_or_x'
 ; CHECK-NEXT:  Classifying expressions for: @select_constantptr_or_x
 ; CHECK-NEXT:    %r = select i1 %c, ptr @constant, ptr %x
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %c, @constant, %x) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @select_constantptr_or_x
 ;
   %r = select i1 %c, ptr @constant, ptr %x
@@ -400,7 +400,7 @@ define ptr @select_between_constantptrs(i1 %c, ptr %x) {
 ; CHECK-LABEL: 'select_between_constantptrs'
 ; CHECK-NEXT:  Classifying expressions for: @select_between_constantptrs
 ; CHECK-NEXT:    %r = select i1 %c, ptr @constant, ptr @another_constant
-; CHECK-NEXT:    --> %r U: [0,-3) S: [-9223372036854775808,9223372036854775805)
+; CHECK-NEXT:    --> (select %c, @constant, @another_constant) U: [0,-3) S: [-9223372036854775808,9223372036854775805)
 ; CHECK-NEXT:  Determining loop execution counts for: @select_between_constantptrs
 ;
   %r = select i1 %c, ptr @constant, ptr @another_constant
@@ -508,7 +508,7 @@ define i32 @umin_seq_x_y_wrongtype0(i32 %x, i32 %y) {
 ; CHECK-NEXT:    %umax = call i32 @llvm.umax.i32(i32 %y, i32 %x)
 ; CHECK-NEXT:    --> (%x umax %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umax
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, (%x umax %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_wrongtype0
 ;
   %umax = call i32 @llvm.umax(i32 %y, i32 %x)
@@ -522,7 +522,7 @@ define i32 @umin_seq_x_y_wrongtype1(i32 %x, i32 %y) {
 ; CHECK-NEXT:    %smax = call i32 @llvm.smax.i32(i32 %y, i32 %x)
 ; CHECK-NEXT:    --> (%x smax %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %smax
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, (%x smax %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_wrongtype1
 ;
   %smax = call i32 @llvm.smax(i32 %y, i32 %x)
@@ -536,7 +536,7 @@ define i32 @umin_seq_x_y_wrongtype2(i32 %x, i32 %y) {
 ; CHECK-NEXT:    %smin = call i32 @llvm.smin.i32(i32 %y, i32 %x)
 ; CHECK-NEXT:    --> (%x smin %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %smin
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, (%x smin %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_wrongtype2
 ;
   %smin = call i32 @llvm.smin(i32 %y, i32 %x)
@@ -553,7 +553,7 @@ define i32 @umin_seq_x_y_wrongtype3(i32 %x, i32 %y, i32 %z) {
 ; CHECK-NEXT:    %umin = call i32 @llvm.umin.i32(i32 %umax, i32 %y)
 ; CHECK-NEXT:    --> ((%x umax %z) umin %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umin
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, ((%x umax %z) umin %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_wrongtype3
 ;
   %umax = call i32 @llvm.umax(i32 %x, i32 %z)
@@ -745,7 +745,7 @@ define i32 @umin_seq_x_y_sext_in_umin(i8 %x.narrow, i32 %y) {
 ; CHECK-NEXT:    %umin = call i32 @llvm.umin.i32(i32 %y, i32 %x)
 ; CHECK-NEXT:    --> ((sext i8 %x.narrow to i32) umin %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umin
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, ((sext i8 %x.narrow to i32) umin %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_sext_in_umin
 ;
   %x = sext i8 %x.narrow to i32
@@ -763,7 +763,7 @@ define i8 @umin_seq_x_y_sext_in_iszero(i8 %x, i8 %y) {
 ; CHECK-NEXT:    %umin = call i8 @llvm.umin.i8(i8 %y, i8 %x)
 ; CHECK-NEXT:    --> (%x umin %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i8 0, i8 %umin
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, (%x umin %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_sext_in_iszero
 ;
   %x.wide = sext i8 %x to i32
@@ -781,7 +781,7 @@ define i32 @umin_seq_x_y_sext_of_umin(i8 %x, i8 %y) {
 ; CHECK-NEXT:    %umin = sext i8 %umin.narrow to i32
 ; CHECK-NEXT:    --> (sext i8 (%x umin %y) to i32) U: [-128,128) S: [-128,128)
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umin
-; CHECK-NEXT:    --> %r U: [-128,128) S: [-128,128)
+; CHECK-NEXT:    --> (select %x.is.zero, 0, (sext i8 (%x umin %y) to i32)) U: [-128,128) S: [-128,128)
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_sext_of_umin
 ;
   %umin.narrow = call i8 @llvm.umin.i8(i8 %y, i8 %x)
@@ -801,7 +801,7 @@ define i32 @umin_seq_x_y_zext_vs_sext(i8 %x.narrow, i32 %y) {
 ; CHECK-NEXT:    %umin = call i32 @llvm.umin.i32(i32 %y, i32 %x.zext)
 ; CHECK-NEXT:    --> ((zext i8 %x.narrow to i32) umin %y) U: [0,256) S: [0,256)
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umin
-; CHECK-NEXT:    --> %r U: [0,256) S: [0,256)
+; CHECK-NEXT:    --> (select %x.is.zero, 0, ((zext i8 %x.narrow to i32) umin %y)) U: [0,256) S: [0,256)
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_zext_vs_sext
 ;
   %x.zext = zext i8 %x.narrow to i32
@@ -821,7 +821,7 @@ define i32 @umin_seq_x_y_sext_vs_zext(i8 %x.narrow, i32 %y) {
 ; CHECK-NEXT:    %umin = call i32 @llvm.umin.i32(i32 %y, i32 %x.sext)
 ; CHECK-NEXT:    --> ((sext i8 %x.narrow to i32) umin %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i32 0, i32 %umin
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, 0, ((sext i8 %x.narrow to i32) umin %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umin_seq_x_y_sext_vs_zext
 ;
   %x.zext = zext i8 %x.narrow to i32

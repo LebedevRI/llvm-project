@@ -398,6 +398,12 @@ private:
       NewOps.push_back(visit(Op));
     return SE.getUMinExpr(NewOps, /*Sequential=*/true);
   }
+  const SCEV *visitSelectExpr(const SCEVSelectExpr *E) {
+    SmallVector<const SCEV *, 3> NewOps;
+    for (const SCEV *Op : E->operands())
+      NewOps.push_back(visit(Op));
+    return SE.getSelectExpr(NewOps);
+  }
   const SCEV *visitAddRecExpr(const SCEVAddRecExpr *E) {
     SmallVector<const SCEV *, 4> NewOps;
     for (const SCEV *Op : E->operands())

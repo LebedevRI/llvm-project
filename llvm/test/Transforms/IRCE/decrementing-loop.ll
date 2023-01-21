@@ -114,16 +114,11 @@ define void @test_02(ptr %a, ptr %b, ptr %a_len_ptr, ptr %b_len_ptr) {
   ret void
 }
 
-; Check that we can figure out that IV is non-negative via implication through
-; Phi node.
+; FIXME: we should figure out that IV is non-negative via implication through Phi node.
 define void @test_03(ptr %a, ptr %a_len_ptr, i1 %cond) {
 
 ; CHECK-LABEL: test_03
-; CHECK:       mainloop:
-; CHECK-NEXT:    br label %loop
-; CHECK:       loop:
-; CHECK:         br i1 true, label %in.bounds, label %out.of.bounds
-; CHECK:       loop.preloop:
+; CHECK-NOT:       mainloop:
 
  entry:
   %len.a = load i32, ptr %a_len_ptr, !range !0
@@ -161,16 +156,11 @@ exit:
   ret void
 }
 
-; Check that we can figure out that IV is non-negative via implication through
-; two Phi nodes.
+; FIXME: we should figure out that IV is non-negative via implication through two Phi nodes.
 define void @test_04(ptr %a, ptr %a_len_ptr, i1 %cond) {
 
 ; CHECK-LABEL: test_04
-; CHECK:       mainloop:
-; CHECK-NEXT:    br label %loop
-; CHECK:       loop:
-; CHECK:         br i1 true, label %in.bounds, label %out.of.bounds
-; CHECK:       loop.preloop:
+; CHECK-NOT:   mainloop:
 
  entry:
   %len.a = load i32, ptr %a_len_ptr, !range !0

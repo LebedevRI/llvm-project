@@ -101,7 +101,7 @@ define ptr @pointer_align_up_with_select(ptr %obj) {
 ; CHECK-NEXT:    %i6 = getelementptr i8, ptr %i5, i64 16
 ; CHECK-NEXT:    --> (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj to i64) to i4) to i64))<nsw> + %obj) U: full-set S: full-set
 ; CHECK-NEXT:    %i7 = select i1 %i3, ptr %obj, ptr %i6
-; CHECK-NEXT:    --> %i7 U: full-set S: full-set
+; CHECK-NEXT:    --> (select %i3, %obj, (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj to i64) to i4) to i64))<nsw> + %obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_align_up_with_select
 ;
   %i = ptrtoint ptr %obj to i64
@@ -128,7 +128,7 @@ define ptr @pointer_align_up_with_select_different_donor(ptr %obj_to_align, ptr 
 ; CHECK-NEXT:    %i6 = getelementptr i8, ptr %i5, i64 16
 ; CHECK-NEXT:    --> (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj_donor to i64) to i4) to i64))<nsw> + %obj_to_align) U: full-set S: full-set
 ; CHECK-NEXT:    %i7 = select i1 %i3, ptr %obj_to_align, ptr %i6
-; CHECK-NEXT:    --> %i7 U: full-set S: full-set
+; CHECK-NEXT:    --> (select %i3, %obj_to_align, (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj_donor to i64) to i4) to i64))<nsw> + %obj_to_align)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_align_up_with_select_different_donor
 ;
   %i = ptrtoint ptr %obj_donor to i64
@@ -155,7 +155,7 @@ define ptr @pointer_align_up_with_select_different_objects_bad(ptr %first_obj, p
 ; CHECK-NEXT:    %i6 = getelementptr i8, ptr %i5, i64 16
 ; CHECK-NEXT:    --> (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj_donor to i64) to i4) to i64))<nsw> + %second_obj) U: full-set S: full-set
 ; CHECK-NEXT:    %i7 = select i1 %i3, ptr %first_obj, ptr %i6
-; CHECK-NEXT:    --> %i7 U: full-set S: full-set
+; CHECK-NEXT:    --> (select %i3, %first_obj, (16 + (-1 * (zext i4 (trunc i64 (ptrtoint ptr %obj_donor to i64) to i4) to i64))<nsw> + %second_obj)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @pointer_align_up_with_select_different_objects_bad
 ;
   %i = ptrtoint ptr %obj_donor to i64

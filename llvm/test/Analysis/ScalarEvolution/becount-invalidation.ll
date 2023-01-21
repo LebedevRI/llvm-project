@@ -25,7 +25,7 @@ define void @test(ptr %arg) {
 ; CHECK-NEXT:    %iv.next = add i64 %iv, 1
 ; CHECK-NEXT:    --> {1,+,1}<%loop2.header> U: [1,2) S: [1,2) Exits: <<Unknown>> LoopDispositions: { %loop2.header: Computable, %loop.header: Variant }
 ; CHECK-NEXT:    %ptr2.next = phi ptr [ %ptr1, %if ], [ %arg, %else ]
-; CHECK-NEXT:    --> %ptr2.next U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop.header: Variant, %loop2.header: Invariant }
+; CHECK-NEXT:    --> (select %cmp2, %ptr1, %arg) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop.header: Variant, %loop2.header: Invariant }
 ; CHECK-NEXT:  Determining loop execution counts for: @test
 ; CHECK-NEXT:  Loop %loop2.header: <multiple exits> Unpredictable backedge-taken count.
 ; CHECK-NEXT:    exit count for loop2.header: ***COULDNOTCOMPUTE***

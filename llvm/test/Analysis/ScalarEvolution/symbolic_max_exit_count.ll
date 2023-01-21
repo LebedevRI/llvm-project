@@ -524,7 +524,7 @@ define i32 @test_two_phis_logical_or(i32 %start_1, i32 %start_2, i32 %len) {
 ; CHECK-NEXT:    %c2 = and i1 %zero_check_2, %scam_2
 ; CHECK-NEXT:    --> (%zero_check_2 umin %scam_2) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:    %merged_cond = select i1 %c1, i1 true, i1 %c2
-; CHECK-NEXT:    --> (true + ((true + (%zero_check_1 umin %scam_1)) umin_seq (true + (%zero_check_2 umin %scam_2)))) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
+; CHECK-NEXT:    --> (select (%zero_check_1 umin %scam_1), true, (%zero_check_2 umin %scam_2)) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:    %iv.minus.1 = add i32 %iv_1, -1
 ; CHECK-NEXT:    --> {(-1 + %start_1),+,-1}<%loop> U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv_1.next = add i32 %iv_1, -1
@@ -597,7 +597,7 @@ define i32 @test_two_phis_logical_and(i32 %start_1, i32 %start_2, i32 %len) {
 ; CHECK-NEXT:    %c2 = and i1 %zero_check_2, %scam_2
 ; CHECK-NEXT:    --> (%zero_check_2 umin %scam_2) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:    %merged_cond = select i1 %c1, i1 %c2, i1 false
-; CHECK-NEXT:    --> ((%zero_check_1 umin %scam_1) umin_seq (%zero_check_2 umin %scam_2)) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
+; CHECK-NEXT:    --> (select (%zero_check_1 umin %scam_1), (%zero_check_2 umin %scam_2), false) U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:    %iv.minus.1 = add i32 %iv_1, -1
 ; CHECK-NEXT:    --> {(-1 + %start_1),+,-1}<%loop> U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv_1.next = add i32 %iv_1, -1

@@ -146,7 +146,7 @@ define i8 @umax_basic_eq_off2(i8 %x, i8 %y) {
 ; CHECK-NEXT:    %rhs = add i8 %x, %y
 ; CHECK-NEXT:    --> (%x + %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i8 %lhs, i8 %rhs
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, (2 + %y), (%x + %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umax_basic_eq_off2
 ;
   %x.is.zero = icmp eq i8 %x, 0
@@ -164,7 +164,7 @@ define i8 @umax_basic_eq_var_off(i8 %x, i8 %y, i8 %c) {
 ; CHECK-NEXT:    %rhs = add i8 %x, %y
 ; CHECK-NEXT:    --> (%x + %y) U: full-set S: full-set
 ; CHECK-NEXT:    %r = select i1 %x.is.zero, i8 %lhs, i8 %rhs
-; CHECK-NEXT:    --> %r U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x.is.zero, (%y + %c), (%x + %y)) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @umax_basic_eq_var_off
 ;
   %x.is.zero = icmp eq i8 %x, 0

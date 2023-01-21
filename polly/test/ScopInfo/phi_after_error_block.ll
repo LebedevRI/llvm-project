@@ -34,28 +34,24 @@ exit:
    ret void
 }
 
-; CHECK:      Statements {
-; CHECK-NEXT: 	Stmt_ok
-; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_ok[] : p > 0 };
-; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_ok[] -> [0, 0] };
-; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 1]
-; CHECK-NEXT:             [p] -> { Stmt_ok[] -> MemRef_phi__phi[] };
-; CHECK-NEXT: 	Stmt_merge
-; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_merge[] };
-; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> [1, 0] };
-; CHECK-NEXT:         ReadAccess :=	[Reduction Type: NONE] [Scalar: 1]
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> MemRef_phi__phi[] };
-; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 0]
-; CHECK-NEXT:             [p] -> { Stmt_merge[] -> MemRef_A[0] };
-; CHECK-NEXT: 	Stmt_loop
-; CHECK-NEXT:         Domain :=
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] : p = 1 and 0 <= i0 <= 1025 };
-; CHECK-NEXT:         Schedule :=
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] -> [2, i0] };
-; CHECK-NEXT:         MustWriteAccess :=	[Reduction Type: NONE] [Scalar: 0]
-; CHECK-NEXT:             [p] -> { Stmt_loop[i0] -> MemRef_A[0] };
-; CHECK-NEXT: }
+; CHECK:          Statements {
+; CHECK-NEXT:         Stmt_loop
+; CHECK-NEXT:             Domain :=
+; CHECK-NEXT:                 { Stmt_loop[i0] : 0 <= i0 <= 1025 };
+; CHECK-NEXT:             Schedule :=
+; CHECK-NEXT:                 { Stmt_loop[i0] -> [i0] };
+; CHECK-NEXT:             MustWriteAccess :=  [Reduction Type: NONE] [Scalar: 0]
+; CHECK-NEXT:                 { Stmt_loop[i0] -> MemRef_A[0] };
+; CHECK-NEXT:     }
+
+; CHECK:          Statements {
+; CHECK-NEXT:         Stmt_ok
+; CHECK-NEXT:             Domain :=
+; CHECK-NEXT:                 [p] -> { Stmt_ok[] : p > 0 };
+; CHECK-NEXT:             Schedule :=
+; CHECK-NEXT:                 [p] -> { Stmt_ok[] -> [] };
+; CHECK-NEXT:             MustWriteAccess :=  [Reduction Type: NONE] [Scalar: 1]
+; CHECK-NEXT:                 [p] -> { Stmt_ok[] -> MemRef_phi[] };
+; CHECK-NEXT:     }
+
+; CHECK-NOT:      Statements {

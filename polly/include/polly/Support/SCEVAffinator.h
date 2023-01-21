@@ -112,6 +112,7 @@ private:
   PWACtx visitUMaxExpr(const llvm::SCEVUMaxExpr *E);
   PWACtx visitUMinExpr(const llvm::SCEVUMinExpr *E);
   PWACtx visitSequentialUMinExpr(const llvm::SCEVSequentialUMinExpr *E);
+  PWACtx visitSelectExpr(const llvm::SCEVSelectExpr *E);
   PWACtx visitUnknown(const llvm::SCEVUnknown *E);
   PWACtx visitSDivInstruction(llvm::Instruction *SDiv);
   PWACtx visitSRemInstruction(llvm::Instruction *SRem);

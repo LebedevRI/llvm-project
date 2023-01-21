@@ -231,7 +231,7 @@ define void @test_shl3(i1 %c) {
 ; CHECK-LABEL: 'test_shl3'
 ; CHECK-NEXT:  Classifying expressions for: @test_shl3
 ; CHECK-NEXT:    %shiftamt = select i1 %c, i64 1, i64 0
-; CHECK-NEXT:    --> %shiftamt U: [0,2) S: [0,2)
+; CHECK-NEXT:    --> (select %c, 1, 0) U: [0,2) S: [0,2)
 ; CHECK-NEXT:    %iv = phi i64 [ 0, %entry ], [ %iv.next, %loop ]
 ; CHECK-NEXT:    --> {0,+,1}<%loop> U: [0,5) S: [0,5) Exits: 4 LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.shl = phi i64 [ 4, %entry ], [ %iv.shl.next, %loop ]

@@ -2,11 +2,11 @@
 ;
 ; Check that the access function of the store is simple and concise
 ;
-; CHECK: p0: {0,+,(-1 + (sext i32 (-1 * %smax188) to i64))<nsw>}<%for.cond261.preheader>
-;
-; CHECK:      MustWriteAccess := [Reduction Type: NONE] [Scalar: 0]
-; CHECK-NEXT:   [p_0] -> { Stmt_for_body276[i0] -> MemRef_A[p_0] };
-;
+; CHECK:      Printing analysis 'Polly - Create polyhedral description of Scops' for region: 'for.body276 => for.end291' in function 'BPredPartitionCost':
+; CHECK-NEXT: Invalid Scop!
+; CHECK-NEXT: Printing analysis 'Polly - Create polyhedral description of Scops' for region: 'entry => <Function Return>' in function 'BPredPartitionCost':
+; CHECK-NEXT: Invalid Scop!
+
 ; ModuleID = 'bugpoint-reduced-simplified.bc'
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 

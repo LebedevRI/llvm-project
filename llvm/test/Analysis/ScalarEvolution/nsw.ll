@@ -149,7 +149,7 @@ define i32 @addnsw(i32 %a, i32 %b) nounwind ssp {
 ; CHECK-NEXT:    %tmp2 = add nsw i32 %a, %b
 ; CHECK-NEXT:    --> (%a + %b) U: full-set S: full-set
 ; CHECK-NEXT:    %result = phi i32 [ %a, %entry ], [ %tmp2, %greater ]
-; CHECK-NEXT:    --> %result U: full-set S: full-set
+; CHECK-NEXT:    --> (select %cmp, (%a + %b), %a) U: full-set S: full-set
 ; CHECK-NEXT:  Determining loop execution counts for: @addnsw
 ;
 entry:
@@ -414,7 +414,7 @@ define void @select_cond_poison_propagation(ptr %p, i32 %x) nounwind {
 ; CHECK-NEXT:    %iv.next = add nsw i32 %iv, 1
 ; CHECK-NEXT:    --> {1,+,1}<nuw><nsw><%loop> U: [1,-2147483648) S: [1,-2147483648) Exits: <<Unknown>> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %sel = select i1 %cmp, i32 10, i32 20
-; CHECK-NEXT:    --> %sel U: [0,31) S: [0,31) Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
+; CHECK-NEXT:    --> (select %cmp, 10, 20) U: [10,21) S: [10,21) Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:    %cond = call i1 @cond()
 ; CHECK-NEXT:    --> %cond U: full-set S: full-set Exits: <<Unknown>> LoopDispositions: { %loop: Variant }
 ; CHECK-NEXT:  Determining loop execution counts for: @select_cond_poison_propagation

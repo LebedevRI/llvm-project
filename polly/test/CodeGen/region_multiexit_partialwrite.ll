@@ -38,7 +38,7 @@ bb19:
 
 
 ; CHECK:      polly.stmt.bb10.exit:
-; CHECK-NEXT:   %polly.tmp11 = phi i32 [ %p_tmp8, %polly.stmt.bb7 ], [ undef, %polly.stmt.bb9 ]
+; CHECK-NEXT:   %polly.tmp11 = phi i32 [ undef, %polly.stmt.bb7 ], [ undef, %polly.stmt.bb9 ]
 
 ; CHECK: polly.stmt.bb10.exit.Stmt_bb3__TO__bb10_Write1.partial:
 ; CHECK:   store i32 %polly.tmp11

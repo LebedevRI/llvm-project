@@ -127,9 +127,9 @@ define i1 @test_umin_seq(i1 %x, i1 %y) {
 ; CHECK-LABEL: 'test_umin_seq'
 ; CHECK-NEXT:  Classifying expressions for: @test_umin_seq
 ; CHECK-NEXT:    %x_umin_seq_y = select i1 %x, i1 %y, i1 false
-; CHECK-NEXT:    --> (%x umin_seq %y) U: full-set S: full-set
+; CHECK-NEXT:    --> (select %x, %y, false) U: full-set S: full-set
 ; CHECK-NEXT:    %zext_x_umin_seq_y = zext i1 %x_umin_seq_y to i64
-; CHECK-NEXT:    --> (zext i1 (%x umin_seq %y) to i64) U: [0,2) S: [0,2)
+; CHECK-NEXT:    --> (zext i1 (select %x, %y, false) to i64) U: [0,2) S: [0,2)
 ; CHECK-NEXT:    %zext_x = zext i1 %x to i64
 ; CHECK-NEXT:    --> (zext i1 %x to i64) U: [0,2) S: [0,2)
 ; CHECK-NEXT:    %zext_y = zext i1 %y to i64

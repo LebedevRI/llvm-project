@@ -646,6 +646,7 @@ public:
                           bool Sequential = false);
   const SCEV *getUMinExpr(SmallVectorImpl<const SCEV *> &Operands,
                           bool Sequential = false);
+  const SCEV *getSelectExpr(ArrayRef<const SCEV *> Operands);
   const SCEV *getUnknown(Value *V);
   const SCEV *getCouldNotCompute();
 
@@ -1705,14 +1706,11 @@ private:
   /// is either a select instruction or a phi node).  \p Ty is the type of the
   /// instruction being processed, that is assumed equivalent to
   /// "Cond ? TrueVal : FalseVal".
-  std::optional<const SCEV *>
-  createNodeForSelectOrPHIInstWithICmpInstCond(Type *Ty, ICmpInst *Cond,
-                                               Value *TrueVal, Value *FalseVal);
-
-  /// See if we can model this select-like instruction via umin_seq expression.
-  const SCEV *createNodeForSelectOrPHIViaUMinSeq(Value *I, Value *Cond,
-                                                 Value *TrueVal,
-                                                 Value *FalseVal);
+  const std::optional<const SCEV *>
+  createNonSelectNodeForSelectOrPHIInstWithICmpInstCond(Type *Ty,
+                                                        ICmpInst *Cond,
+                                                        Value *TrueVal,
+                                                        Value *FalseVal);
 
   /// Given a value \p V, which is a select-like instruction (currently this is
   /// either a select instruction or a phi node), which is assumed equivalent to

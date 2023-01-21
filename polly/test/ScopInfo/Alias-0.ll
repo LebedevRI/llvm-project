@@ -1,4 +1,4 @@
-; RUN: opt %loadPolly -polly-print-scops -disable-output < %s -stats 2>&1 | FileCheck %s --check-prefix=RTA
+; RUN: opt %loadPolly -polly-print-scops -disable-output < %s -stats 2>&1 | FileCheck %s --check-prefix=NORTA
 ; RUN: opt %loadPolly -polly-print-scops -polly-use-runtime-alias-checks=false -disable-output < %s -stats 2>&1 | FileCheck %s --check-prefix=NORTA
 ; REQUIRES: asserts
 
@@ -32,5 +32,5 @@ return:                                           ; preds = %bb3
 declare i32 @rnd(...)
 
 
-; RTA:   1 polly-detect     - Number of scops
-; NORTA: 1 polly-detect     - Number of rejected regions: Base address aliasing
+; NORTA-NOT: Number of scops
+; NORTA: 1 polly-detect     - Number of rejected regions: No base pointer

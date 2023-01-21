@@ -483,6 +483,8 @@ private:
 
   Value *visitSequentialUMinExpr(const SCEVSequentialUMinExpr *S);
 
+  Value *visitSelectExpr(const SCEVSelectExpr *S);
+
   Value *visitUnknown(const SCEVUnknown *S) { return S->getValue(); }
 
   void rememberInstruction(Value *I);

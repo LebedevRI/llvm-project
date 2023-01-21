@@ -693,7 +693,8 @@ const Loop *SCEVExpander::getRelevantLoop(const SCEV *S) {
   case scSMaxExpr:
   case scUMinExpr:
   case scSMinExpr:
-  case scSequentialUMinExpr: {
+  case scSequentialUMinExpr:
+  case scSelectExpr: {
     const Loop *L = nullptr;
     if (const SCEVAddRecExpr *AR = dyn_cast<SCEVAddRecExpr>(S))
       L = AR->getLoop();
@@ -1744,6 +1745,13 @@ Value *SCEVExpander::visitSequentialUMinExpr(const SCEVSequentialUMinExpr *S) {
   return expandMinMaxExpr(S, Intrinsic::umin, "umin", /*IsSequential*/true);
 }
 
+Value *SCEVExpander::visitSelectExpr(const SCEVSelectExpr *S) {
+  std::array<Value *, 3> Vals;
+  for (auto I : zip(S->operands(), Vals))
+    std::get<1>(I) = expand(std::get<0>(I));
+  return Builder.CreateSelect(Vals[0], Vals[1], Vals[2]);
+}
+
 Value *SCEVExpander::expandCodeForImpl(const SCEV *SH, Type *Ty,
                                        Instruction *IP) {
   setInsertPoint(IP);
@@ -2220,6 +2228,9 @@ template<typename T> static InstructionCost costAndCollectOperands(
     Cost += MulCost * (PolyDegree - 1);
     break;
   }
+  case scSelectExpr:
+    Cost += CmpSelCost(Instruction::Select, 1, 0, 2);
+    break;
   }
 
   for (auto &CostOp : Operations) {
@@ -2317,6 +2328,11 @@ bool SCEVExpander::isHighCostExpansionHelper(
            "Polynomial should be at least linear");
     Cost += costAndCollectOperands<SCEVAddRecExpr>(
         WorkItem, TTI, CostKind, Worklist);
+    return Cost > Budget;
+  }
+  case scSelectExpr: {
+    Cost += costAndCollectOperands<SCEVSelectExpr>(WorkItem, TTI, CostKind,
+                                                   Worklist);
     return Cost > Budget;
   }
   }

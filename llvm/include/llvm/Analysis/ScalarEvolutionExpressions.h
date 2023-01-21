@@ -51,6 +51,7 @@ enum SCEVTypes : unsigned short {
   scUMinExpr,
   scSMinExpr,
   scSequentialUMinExpr,
+  scSelectExpr,
   scPtrToInt,
   scUnknown,
   scCouldNotCompute
@@ -553,6 +554,38 @@ public:
   }
 };
 
+/// This class represents a ternary select expression.
+class SCEVSelectExpr : public SCEV {
+  friend class ScalarEvolution;
+
+  std::array<const SCEV *, 3> Operands;
+
+  SCEVSelectExpr(const FoldingSetNodeIDRef ID, ArrayRef<const SCEV *> Ops)
+      : SCEV(ID, scSelectExpr, computeExpressionSize(Ops)) {
+    assert(Ops.size() == 3 && "Unexpected operand count!");
+    llvm::copy(Ops, Operands.begin());
+  }
+
+public:
+  const SCEV *getCondition() const { return Operands[0]; }
+  const SCEV *getTrueValue() const { return Operands[1]; }
+  const SCEV *getFalseValue() const { return Operands[2]; }
+  size_t getNumOperands() const { return 3; }
+  const SCEV *getOperand(unsigned i) const {
+    assert((i < getNumOperands()) && "Operand index out of range!");
+    return Operands[i];
+  }
+
+  ArrayRef<const SCEV *> operands() const { return Operands; }
+
+  Type *getType() const { return getTrueValue()->getType(); }
+
+  /// Methods for support type inquiry through isa, cast, and dyn_cast:
+  static bool classof(const SCEV *S) {
+    return S->getSCEVType() == scSelectExpr;
+  }
+};
+
 /// This means that we are dealing with an entirely unknown SCEV
 /// value, and only represent it as its LLVM Value.  This is the
 /// "bottom" value for the analysis.
@@ -631,6 +664,8 @@ template <typename SC, typename RetVal = void> struct SCEVVisitor {
     case scSequentialUMinExpr:
       return ((SC *)this)
           ->visitSequentialUMinExpr((const SCEVSequentialUMinExpr *)S);
+    case scSelectExpr:
+      return ((SC *)this)->visitSelectExpr((const SCEVSelectExpr *)S);
     case scUnknown:
       return ((SC *)this)->visitUnknown((const SCEVUnknown *)S);
     case scCouldNotCompute:
@@ -686,6 +721,7 @@ public:
       case scUMinExpr:
       case scSequentialUMinExpr:
       case scAddRecExpr:
+      case scSelectExpr:
         for (const auto *Op : S->operands()) {
           push(Op);
           if (Visitor.isDone())
@@ -875,6 +911,18 @@ public:
       Changed |= Op != Operands.back();
     }
     return !Changed ? Expr : SE.getUMinExpr(Operands, /*Sequential=*/true);
+  }
+
+  const SCEV *visitSelectExpr(const SCEVSelectExpr *Expr) {
+    std::array<const SCEV *, 3> Operands;
+    bool Changed = false;
+    for (auto I : zip(Expr->operands(), Operands)) {
+      const SCEV *Op = std::get<0>(I);
+      const SCEV *&NewOp = std::get<1>(I);
+      NewOp = ((SC *)this)->visit(Op);
+      Changed |= Op != NewOp;
+    }
+    return !Changed ? Expr : SE.getSelectExpr(Operands);
   }
 
   const SCEV *visitUnknown(const SCEVUnknown *Expr) { return Expr; }

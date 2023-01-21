@@ -284,16 +284,16 @@ define void @guard_pessimizes_analysis_step2(i1 %c, i32 %N) {
 ; CHECK-NEXT:    %N.ext = zext i32 %N to i64
 ; CHECK-NEXT:    --> (zext i32 %N to i64) U: [0,4294967296) S: [0,4294967296)
 ; CHECK-NEXT:    %init = phi i64 [ 2, %entry ], [ 4, %bb1 ]
-; CHECK-NEXT:    --> %init U: [2,5) S: [2,5)
+; CHECK-NEXT:    --> (select %c, 4, 2) U: [2,5) S: [2,5)
 ; CHECK-NEXT:    %iv = phi i64 [ %iv.next, %loop ], [ %init, %loop.ph ]
-; CHECK-NEXT:    --> {%init,+,2}<%loop> U: [2,17) S: [2,17) Exits: ((2 * ((14 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(select %c, 4, 2),+,2}<%loop> U: [2,17) S: [2,17) Exits: ((2 * ((14 + (-1 * (select %c, 4, 2))<nsw>)<nsw> /u 2))<nuw><nsw> + (select %c, 4, 2)) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.next = add i64 %iv, 2
-; CHECK-NEXT:    --> {(2 + %init)<nuw><nsw>,+,2}<%loop> U: [4,19) S: [4,19) Exits: (2 + (2 * ((14 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(2 + (select %c, 4, 2))<nuw><nsw>,+,2}<%loop> U: [4,19) S: [4,19) Exits: (2 + (2 * ((14 + (-1 * (select %c, 4, 2))<nsw>)<nsw> /u 2))<nuw><nsw> + (select %c, 4, 2)) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:  Determining loop execution counts for: @guard_pessimizes_analysis_step2
-; CHECK-NEXT:  Loop %loop: backedge-taken count is ((14 + (-1 * %init)<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: backedge-taken count is ((14 + (-1 * (select %c, 4, 2))<nsw>)<nsw> /u 2)
 ; CHECK-NEXT:  Loop %loop: constant max backedge-taken count is 6
-; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is ((14 + (-1 * %init)<nsw>)<nsw> /u 2)
-; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is ((14 + (-1 * %init)<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is ((14 + (-1 * (select %c, 4, 2))<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is ((14 + (-1 * (select %c, 4, 2))<nsw>)<nsw> /u 2)
 ; CHECK-NEXT:   Predicates:
 ; CHECK:       Loop %loop: Trip multiple is 1
 ;

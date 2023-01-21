@@ -887,16 +887,16 @@ define void @guard_pessimizes_analysis_step1(i1 %c, i32 %N) {
 ; CHECK-LABEL: 'guard_pessimizes_analysis_step1'
 ; CHECK-NEXT:  Classifying expressions for: @guard_pessimizes_analysis_step1
 ; CHECK-NEXT:    %init = phi i32 [ 2, %entry ], [ 3, %bb1 ]
-; CHECK-NEXT:    --> %init U: [2,4) S: [2,4)
+; CHECK-NEXT:    --> (select %c, 3, 2) U: [2,4) S: [2,4)
 ; CHECK-NEXT:    %iv = phi i32 [ %iv.next, %loop ], [ %init, %loop.ph ]
-; CHECK-NEXT:    --> {%init,+,1}<%loop> U: [2,11) S: [2,11) Exits: 9 LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(select %c, 3, 2),+,1}<%loop> U: [2,11) S: [2,11) Exits: 9 LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.next = add i32 %iv, 1
-; CHECK-NEXT:    --> {(1 + %init)<nuw><nsw>,+,1}<%loop> U: [3,12) S: [3,12) Exits: 10 LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(1 + (select %c, 3, 2))<nuw><nsw>,+,1}<%loop> U: [3,12) S: [3,12) Exits: 10 LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:  Determining loop execution counts for: @guard_pessimizes_analysis_step1
-; CHECK-NEXT:  Loop %loop: backedge-taken count is (9 + (-1 * %init)<nsw>)<nsw>
+; CHECK-NEXT:  Loop %loop: backedge-taken count is (9 + (-1 * (select %c, 3, 2))<nsw>)<nsw>
 ; CHECK-NEXT:  Loop %loop: constant max backedge-taken count is 7
-; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is (9 + (-1 * %init)<nsw>)<nsw>
-; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is (9 + (-1 * %init)<nsw>)<nsw>
+; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is (9 + (-1 * (select %c, 3, 2))<nsw>)<nsw>
+; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is (9 + (-1 * (select %c, 3, 2))<nsw>)<nsw>
 ; CHECK-NEXT:   Predicates:
 ; CHECK:       Loop %loop: Trip multiple is 1
 ;
@@ -928,16 +928,16 @@ define void @guard_pessimizes_analysis_step2(i1 %c, i32 %N) {
 ; CHECK-LABEL: 'guard_pessimizes_analysis_step2'
 ; CHECK-NEXT:  Classifying expressions for: @guard_pessimizes_analysis_step2
 ; CHECK-NEXT:    %init = phi i32 [ 2, %entry ], [ 3, %bb1 ]
-; CHECK-NEXT:    --> %init U: [2,4) S: [2,4)
+; CHECK-NEXT:    --> (select %c, 3, 2) U: [2,4) S: [2,4)
 ; CHECK-NEXT:    %iv = phi i32 [ %iv.next, %loop ], [ %init, %loop.ph ]
-; CHECK-NEXT:    --> {%init,+,2}<nuw><nsw><%loop> U: [2,10) S: [2,10) Exits: ((2 * ((8 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(select %c, 3, 2),+,2}<nuw><nsw><%loop> U: [2,10) S: [2,10) Exits: ((2 * ((8 + (-1 * (select %c, 3, 2))<nsw>)<nsw> /u 2))<nuw><nsw> + (select %c, 3, 2)) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.next = add nuw nsw i32 %iv, 2
-; CHECK-NEXT:    --> {(2 + %init)<nuw><nsw>,+,2}<nuw><nsw><%loop> U: [4,12) S: [4,12) Exits: (2 + (2 * ((8 + (-1 * %init)<nsw>)<nsw> /u 2))<nuw><nsw> + %init) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {(2 + (select %c, 3, 2))<nuw><nsw>,+,2}<nuw><nsw><%loop> U: [4,12) S: [4,12) Exits: (2 + (2 * ((8 + (-1 * (select %c, 3, 2))<nsw>)<nsw> /u 2))<nuw><nsw> + (select %c, 3, 2)) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:  Determining loop execution counts for: @guard_pessimizes_analysis_step2
-; CHECK-NEXT:  Loop %loop: backedge-taken count is ((8 + (-1 * %init)<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: backedge-taken count is ((8 + (-1 * (select %c, 3, 2))<nsw>)<nsw> /u 2)
 ; CHECK-NEXT:  Loop %loop: constant max backedge-taken count is 3
-; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is ((8 + (-1 * %init)<nsw>)<nsw> /u 2)
-; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is ((8 + (-1 * %init)<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is ((8 + (-1 * (select %c, 3, 2))<nsw>)<nsw> /u 2)
+; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is ((8 + (-1 * (select %c, 3, 2))<nsw>)<nsw> /u 2)
 ; CHECK-NEXT:   Predicates:
 ; CHECK:       Loop %loop: Trip multiple is 1
 ;
@@ -1445,20 +1445,20 @@ define void @optimized_range_check_unsigned3(ptr %pred, i1 %c) {
 ; CHECK-LABEL: 'optimized_range_check_unsigned3'
 ; CHECK-NEXT:  Classifying expressions for: @optimized_range_check_unsigned3
 ; CHECK-NEXT:    %N = select i1 %c, i32 2, i32 3
-; CHECK-NEXT:    --> %N U: [2,4) S: [2,4)
+; CHECK-NEXT:    --> (select %c, 2, 3) U: [2,4) S: [2,4)
 ; CHECK-NEXT:    %N.off = add i32 %N, -1
-; CHECK-NEXT:    --> (-1 + %N)<nsw> U: [1,3) S: [1,3)
+; CHECK-NEXT:    --> (-1 + (select %c, 2, 3))<nsw> U: [1,3) S: [1,3)
 ; CHECK-NEXT:    %iv = phi i32 [ 0, %entry ], [ %iv.next, %loop ]
-; CHECK-NEXT:    --> {0,+,1}<nuw><nsw><%loop> U: [0,3) S: [0,3) Exits: (-1 + %N)<nsw> LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {0,+,1}<nuw><nsw><%loop> U: [0,3) S: [0,3) Exits: (-1 + (select %c, 2, 3))<nsw> LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %gep = getelementptr inbounds i16, ptr %pred, i32 %iv
-; CHECK-NEXT:    --> {%pred,+,2}<nuw><%loop> U: full-set S: full-set Exits: ((2 * (zext i32 (-1 + %N)<nsw> to i64))<nuw><nsw> + %pred) LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {%pred,+,2}<nuw><%loop> U: full-set S: full-set Exits: ((2 * (zext i32 (-1 + (select %c, 2, 3))<nsw> to i64))<nuw><nsw> + %pred) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:    %iv.next = add nuw nsw i32 %iv, 1
-; CHECK-NEXT:    --> {1,+,1}<nuw><nsw><%loop> U: [1,4) S: [1,4) Exits: %N LoopDispositions: { %loop: Computable }
+; CHECK-NEXT:    --> {1,+,1}<nuw><nsw><%loop> U: [1,4) S: [1,4) Exits: (select %c, 2, 3) LoopDispositions: { %loop: Computable }
 ; CHECK-NEXT:  Determining loop execution counts for: @optimized_range_check_unsigned3
-; CHECK-NEXT:  Loop %loop: backedge-taken count is (-1 + %N)<nsw>
+; CHECK-NEXT:  Loop %loop: backedge-taken count is (-1 + (select %c, 2, 3))<nsw>
 ; CHECK-NEXT:  Loop %loop: constant max backedge-taken count is 2
-; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is (-1 + %N)<nsw>
-; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is (-1 + %N)<nsw>
+; CHECK-NEXT:  Loop %loop: symbolic max backedge-taken count is (-1 + (select %c, 2, 3))<nsw>
+; CHECK-NEXT:  Loop %loop: Predicated backedge-taken count is (-1 + (select %c, 2, 3))<nsw>
 ; CHECK-NEXT:   Predicates:
 ; CHECK:       Loop %loop: Trip multiple is 1
 ;
